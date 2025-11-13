@@ -22,7 +22,7 @@ library(broom)
 rm(list = ls(all = TRUE))
 setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 
-d1<-read_csv("./results/data_long4S.csv")%>%
+d1<-read_csv("./results/data_long5.csv")%>%
   select(quest_comb,response_id,Q1,Q2,Q4,Q5,Q8,Q17:Q32_4,Q20a_5,Q27,Q25,Q27,Q28,Q31b,YEAR)%>%
   mutate(Q27 = as.character(Q27), Q17 = as.character(Q17)) %>%
   glimpse()

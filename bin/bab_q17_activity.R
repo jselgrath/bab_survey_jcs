@@ -2,7 +2,7 @@
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation/ CINMS
 
-# goal: graph mpa awareness by gender
+# goal: graph mpa awareness by activity
 
 # ----------------------------------------------------------
 # load libraries ######-------------------------------------
@@ -20,13 +20,14 @@ d1 <- readr::read_csv("./results/data_long5.csv", show_col_types = FALSE) %>%
   filter(Q17!=4) %>% # error - unsure of source
   mutate(
     Q17 = as.character(Q17),
-    Q25 = as.character(Q25)
+    Q4 = as.character(Q4),
+    Q5 = as.character(Q5)
   )%>%
-  filter(!is.na(Q17), !is.na(Q25))%>%
+  filter(!is.na(Q17), !is.na(Q4), !is.na(Q5))%>%
   glimpse()
 
 unique(d1$Q17)
-unique(d1$Q25)
+unique(d1$Q4)
 
 # Recode/collapse Q17 (MPA familiarity) to 4 levels ----
 q17_levels <- c(
@@ -36,14 +37,9 @@ q17_levels <- c(
   "Extremely familiar"
 )
 
-# ---- Keep only 2025 data and relevant vars ----
-d2 <- d1 %>%
-  # filter(YEAR == 2025) %>%
-  select(response_id, Q17, Q25) %>%
-  filter(!is.na(Q17), !is.na(Q25)) %>%
-  filter(Q25 != "Choose not to answer")
 
-d3 <- d2 %>%
+
+d3 <- d1 %>%
   mutate(
     Q17 = forcats::fct_collapse(
       Q17,
@@ -55,55 +51,67 @@ d3 <- d2 %>%
 
 unique(d3$Q17)
 
-# Explode multi-select race (Q25) so multi-race respondents count in each chosen race ----
+# Explode multi-select activity (Q4) so multi-activity respondents count in each chosen activity ----
 
 d3a<-d3
 
-# fix so does not get exploded below
-d3a$Q25<-gsub("Transgender, non-binary, or another gender","Non-binary",d3a$Q25)
-
-unique(d3a$Q25)
 
 d4 <- d3a %>%
-  mutate(Q25 = as.character(Q25), Q17 = as.character(Q17)) %>%
-  tidyr::separate_rows(Q25, sep = ",") %>%
-  mutate(Q25 = stringr::str_trim(Q25)) %>%
-  distinct(response_id, Q25, Q17) %>%               # avoid duplicates
-  mutate(Q17 = factor(Q17, levels = q17_levels))
+  mutate(Q4 = as.character(Q4), Q17 = as.character(Q17)) %>%
+  tidyr::separate_rows(Q4, sep = ",") %>%
+  mutate(Q4 = stringr::str_trim(Q4)) %>%
+  distinct(response_id, Q4, Q17) %>%               # avoid duplicates
+  mutate(Q17 = factor(Q17, levels = q17_levels))%>%
+  filter(Q4!="")%>%
+  glimpse()
 
-unique(d4$Q25)
+unique(d4$Q4)
 
-# ---- Clean & shorten gender (Q25) ----
-gender_levels_short <- c(
-  "Female",
-  "Non-binary",
-  "Male"
-)
-
+# ---- Clean & shorten gender (Q4) ----
+  # activity_labels <- c(
+  #   "Beach Games/Sports",
+  #   "Biking/Skating/Skateboarding",
+  #   "Boating (Engine Powered)",
+  #   "Cultural/Religious Ceremony",
+  #   "Family/Gathering Activities",
+  #   "Festivals (Music/Food)",
+  #   "Fishing/Food Gathering",
+  #   "Nature Observation/Photography",
+  #   "None/No Response",
+  #   "Other",
+  #   "Paid Work",
+  #   "Paddle/Kite/Sail Boarding/Kayaking",
+  #   "Relaxing/Reading/Meditation",
+  #   "Snorkeling/Scuba Diving",
+  #   "Surfing",
+  #   "Swimming/Bodysurfing",
+  #   "Volunteering",
+  #   "Walking/Running"
+  # )
 
 
 
 
 # ---- Denominators per gender (sample size by gender) ----
 denom_by_gender <- d4 %>%
-  count(Q25, name = "N_gender")
+  count(Q4, name = "N_activity")
 
-# ---- Counts per Q17 × Q25 ----
+# ---- Counts per Q17 × Q4 ----
 d_counts <- d4 %>%
-  count(Q17, Q25, name = "n") %>%
-  tidyr::complete(Q17, Q25, fill = list(n = 0)) %>%
-  left_join(denom_by_gender, by = "Q25") %>%
-  mutate(pct_gender = n / N_gender)%>%
-  mutate(Q25 = factor(Q25, levels = gender_levels_short))%>%
+  count(Q17, Q4, name = "n") %>%
+  tidyr::complete(Q17, Q4, fill = list(n = 0)) %>%
+  left_join(denom_by_activity, by = "Q4") %>%
+  mutate(pct_activity = n / N_activity)%>%
+  mutate(Q4 = factor(Q4, levels = activity_levels_short))%>%
   glimpse()
 
-levels(d_counts$Q25)
+levels(d_counts$Q4)
 
 
-# ---- prop.test per Q17 (do proportions differ across gender groups?) ----
+# ---- prop.test per Q17 (do proportions differ across activity groups?) ----
 tests <- d_counts %>%
   group_by(Q17) %>%
-  summarise(test = list(prop.test(x = n, n = N_gender)), .groups = "drop") %>%
+  summarise(test = list(prop.test(x = n, n = N_activity)), .groups = "drop") %>%
   mutate(
     chi_stat = purrr::map_dbl(test, ~ unname(.x$statistic)),
     chi_df   = purrr::map_dbl(test, ~ unname(.x$parameter)),
@@ -128,17 +136,17 @@ facet_labs <- tests %>%
   tibble::deframe()
 
 # ---- Plot ----
-p <- ggplot(d_counts, aes(x = Q25, y = pct_gender, fill = Q25)) +
+p <- ggplot(d_counts, aes(x = Q4, y = pct_activity, fill = Q4)) +
   geom_col(show.legend = FALSE, width = 0.75) +
-  geom_text(aes(label = percent(pct_gender, accuracy = 1)),
+  geom_text(aes(label = percent(pct_activity, accuracy = 1)),
             vjust = -0.25, size = 4.8) +
   scale_y_continuous(labels = percent_format(),
-                     limits = c(0, max(d_counts$pct_gender) * 1.15)) +
+                     limits = c(0, max(d_counts$pct_activity) * 1.15)) +
   scale_fill_discrete_sequential(palette = "Viridis") +
   facet_wrap(~ Q17, ncol = 4, labeller = as_labeller(facet_labs)) +
   labs(
-    x = "Gender",
-    y = "Proportion of Respondents\n(within gender)"
+    x = "Activity",
+    y = "Proportion of Respondents\n(within activity)"
   ) +
   theme_minimal(base_size = 20) +
   theme(
@@ -151,7 +159,7 @@ p <- ggplot(d_counts, aes(x = Q25, y = pct_gender, fill = Q25)) +
 print(p)
 
 # ---- Save ----
-ggsave("./doc/q17_mpa_famil_gender3.png",
+ggsave("./doc/q17_mpa_famil_activity3.png",
        plot = p, width = 18, height = 8, units = "in",
        dpi = 300, bg = "white")
 

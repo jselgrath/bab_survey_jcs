@@ -10,9 +10,11 @@ library(tidyverse)
 library(scales)
 library(colorspace)
 
+rm(list = ls(all = TRUE))
+setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 
 # ---- Load and select relevant columns ----
-d1 <- readr::read_csv("./results/data_long3.csv", show_col_types = FALSE) %>%
+d1 <- readr::read_csv("./results/data_long5.csv", show_col_types = FALSE) %>%
   select(quest_comb, response_id, Q1, Q2, Q4, Q5, Q8,
          Q17:Q32_4, Q20a_5, Q25, Q27, Q28, Q31b, YEAR) %>%
   filter(Q17!=4) %>% # error - unsure of source

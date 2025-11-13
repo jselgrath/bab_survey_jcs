@@ -15,10 +15,10 @@ library(colorspace)
 rm(list = ls(all = TRUE))
 setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 
-d1<-read_csv("./results/data_long3.csv")%>%
+d1<-read_csv("./results/data_long4.csv")%>%
   glimpse()
   
 # -- remove first few rows which contain question info
 d2<-d1[-c(1:8),]
 
-write_csv(d2,"./results/data_long4.csv")
+write_csv(d2,"./results/data_long5.csv")
