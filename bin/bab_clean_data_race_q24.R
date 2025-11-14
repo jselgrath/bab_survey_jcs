@@ -33,24 +33,31 @@ d1$Q24<-gsub("Other","Another race or ethnicity",d1$Q24)# combine verious option
 # survey specific response
 d1$Q24<-gsub("Another race or ethnicity, please specify:","Another race or ethnicity",d1$Q24)
 
+# if people wrote a race and "choose not to answer" we assigned them the race they chose
 d1$Q24<-gsub("White,Choose not to answer","White",d1$Q24)
+d1$Q24<-gsub("Hispanic or Latino,Native Hawaiian or Pacific Islander,White,Choose not to answer","Hispanic or Latino,Native Hawaiian or Pacific Islander,White",d1$Q24)  # check this one
+d1$Q24<-gsub("Hispanic or Latino,Choose not to answer" ,"Hispanic or Latino",d1$Q24)
+d1$Q24<-gsub("Black or African American,Choose not to answer","Black or African American",d1$Q24)
+d1$Q24<-gsub("Asian,Choose not to answer","Asian",d1$Q24)
+d1$Q24<-gsub("Another race or ethnicity,Choose not to answer","Another race or ethnicity",d1$Q24)
 
 
-d1$Q24<-gsub("Asian,Black or African American,Hispanic or Latino,Native Hawaiian or Pacific Islander,White,Choose not to answer" , "Choose not to answer" ,d1$Q24)
 
 # if people selected and also choose not to answer or all responses
 d1$Q24<-gsub("American Indian or Alaska Native,Asian,Black or African American,Hispanic or Latino,Middle Eastern or North African,Native Hawaiian or Pacific Islander,White,Another race or ethnicity,Choose not to answer","Choose not to answer",d1$Q24) # if people picked all
-d1$Q24<-gsub("Hispanic or Latino,Native Hawaiian or Pacific Islander,White,Choose not to answer","Choose not to answer",d1$Q24)  
-d1$Q24<-gsub("Hispanic or Latino,Choose not to answer" ,"Choose not to answer",d1$Q24)
-d1$Q24<-gsub("Black or African American,Choose not to answer","Choose not to answer",d1$Q24)
-d1$Q24<-gsub("Asian,Choose not to answer","Choose not to answer",d1$Q24)
-d1$Q24<-gsub("Another race or ethnicity,Choose not to answer","Choose not to answer",d1$Q24)
 d1$Q24<-gsub("American Indian or Alaska Native,Asian,Black or African American,Hispanic or Latino,Middle Eastern or North African,Native Hawaiian or Pacific Islander,White,Another race or ethnicity" ,"Choose not to answer",d1$Q24)
+d1$Q24<-gsub("Asian,Black or African American,Hispanic or Latino,Native Hawaiian or Pacific Islander,White,Choose not to answer" , "Choose not to answer" ,d1$Q24)
+
+
+
 
 # d1$Q24<-gsub("Another race or ethnicity,Choose not to answer" ,"Choose not to answer",d1$Q24)
 
 
-d1$Q24<-gsub("Middle Eastern or North African","White",d1$Q24)
+# consider grouping with "white because they are such a small community
+# d1$Q24<-gsub("Middle Eastern or North African","White",d1$Q24)
+
+
 d1$Q24<-gsub("White,White","White",d1$Q24)
 d1$Q24<-gsub("White,Native Hawaiian or Pacific Islander,White","Native Hawaiian or Pacific Islander,White",d1$Q24)
 

@@ -43,6 +43,7 @@ d1$Q5<-str_replace_all(d1$Q5,"None of the above","Another activity")
 d1$Q4<-str_replace_all(d1$Q4,"Other","Another activity")
 d1$Q5<-str_replace_all(d1$Q5,"Other","Another activity")
 
+# put commas as / so separate correctly below
 d1$Q4<-str_replace_all(d1$Q4,"Bicycling, roller skating, skateboarding, etc.","Bicycling/Roller skating/Skateboarding,")
 d1$Q5<-str_replace_all(d1$Q5,"Bicycling, roller skating, skateboarding, etc.","Bicycling/Roller skating/Skateboarding")
 d1$Q5<-str_replace_all(d1$Q5,"Bicycling, roller skating, skateboarding, etc.","Bicycling/Roller skating/Skateboarding")

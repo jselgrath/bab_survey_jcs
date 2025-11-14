@@ -18,9 +18,18 @@ library(likert)
 rm(list = ls(all = TRUE))
 setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 
+# -------------------------------
+# -- data cleaning --
+
+# combine honorarium versions of survey
+source("./bin/bab_combine_honorarium.R")
+# input: folder with raw data from qualtrics 2025
+# output: ./results/data_honorarium_versions.csv
+
+
 # import joined data from qualitrics, remove low quality data, and organize headers
 source("./bin/bab_clean_data.R")
-# input:        ./data/Combined_Data_8.27.24.csv
+# input:        ./data/bab_mec_combined_data_20251023.csv
 # output:       ./results/data_wide.csv
 # output:       ./results/data_long.csv
 
@@ -32,7 +41,7 @@ source("./bin/bab_clean_data_gender_q25.R")
 # input:       ./results/data_long2.csv
 # output:      ./results/data_long3.csv
 
-source("./bin/bab_clean_data_activities.R")
+source("./bin/bab_clean_data_activities_q4_q5.R")
 # input:       ./results/data_long3.csv
 # output:      ./results/data_long4.csv
 
@@ -40,6 +49,9 @@ source("./bin/bab_clean_data_remove_headers.R")
 # input:       ./results/data_long4.csv
 # output:      ./results/data_long5.csv
 
+
+# --------------------------------
+# -- mpa questions --
 source("./bin/bab_q17_q18_mpa_q29_q30.R")
 # input:       ./results/data_long5.csv
 # output:      ./doc/q17_mpa_famil.png
