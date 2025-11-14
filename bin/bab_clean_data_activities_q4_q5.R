@@ -58,6 +58,9 @@ d1$Q5<-str_replace_all(d1$Q5,"Festivals with music and/or food  (e.g., earth day
 d1$Q4<-str_replace_all(d1$Q4,"Festivals with music and/or food (e.g., earth day)","Festivals")
 d1$Q5<-str_replace_all(d1$Q5,"Festivals with music and/or food (e.g., earth day)","Festivals")
 
+d1$Q4<-str_replace_all(d1$Q4,"Festivals with music and/or food","Festivals")
+d1$Q5<-str_replace_all(d1$Q5,"Festivals with music and/or food","Festivals")
+
 d1$Q4<-str_replace_all(d1$Q4,"Volunteering (e.g., beach clean-ups)","Volunteering ")
 d1$Q5<-str_replace_all(d1$Q5,"Volunteering (e.g., beach clean-ups)","Volunteering ")
 
@@ -67,11 +70,27 @@ d1$Q5<-str_replace_all(d1$Q5,"Sailing/Boating (engine powered)","Sailing/Boating
 d1$Q4<-str_replace_all(d1$Q4,"Beach games or sports (e.g., frisbee, volleyball, yoga)","Beach games or sports")
 d1$Q5<-str_replace_all(d1$Q5,"Beach games or sports (e.g., frisbee, volleyball, yoga)","Beach games or sports")
 
-d1$Q4<-str_replace_all(d1$Q4,"Group/Family gatherings or activities","Group or family gatherings or activities")
-d1$Q5<-str_replace_all(d1$Q5,"Group/Family gatherings or activities","Group or family gatherings or activities")
+d1$Q4<-str_replace_all(d1$Q4,"Group or family gatherings or activities (e.g., family outing, bbq)","Group/Family gatherings")
+d1$Q5<-str_replace_all(d1$Q5,"Group or family gatherings or activities (e.g., family outing, bbq)","Group/Family gatherings")
 
-d1$Q4<-str_replace_all(d1$Q4,"Meditation, reading, and/or relaxing","Meditation/ Reading/Relaxing")
-d1$Q5<-str_replace_all(d1$Q5,"Meditation, reading, and/or relaxing","Meditation/ Reading/Relaxing")
+d1$Q4<-str_replace_all(d1$Q4,"Group/Family gatherings or activities","Group/Family gatherings")
+d1$Q5<-str_replace_all(d1$Q5,"Group/Family gatherings or activities","Group/Family gatherings")
+
+d1$Q4<-str_replace_all(d1$Q4,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing")
+d1$Q5<-str_replace_all(d1$Q5,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing")
+
+d1$Q4<-str_replace_all(d1$Q4,"Observing or photographing nature or wildlife, outdoor education","Observing or photographing nature") #Observing or photographing nature/Outdoor education
+d1$Q5<-str_replace_all(d1$Q5,"Observing or photographing nature or wildlife, outdoor education","Observing or photographing nature")
+
+
+d1$Q4<-str_replace_all(d1$Q4,"Driving or sitting in your car to enjoy the views/sunsets","Enjoy the views/sunsets from car")
+d1$Q5<-str_replace_all(d1$Q5,"Driving or sitting in your car to enjoy the views/sunsets","Enjoy the views/sunsets from car")
+
+d1$Q4<-str_replace_all(d1$Q4,"Cultural or religious practices or ceremonies","Cultural or religious ceremonies")
+d1$Q5<-str_replace_all(d1$Q5,"Cultural or religious practices or ceremonies","Cultural or religious ceremonies")
+
+d1$Q4<-str_replace_all(d1$Q4,"Stand up paddleboarding/Kite or sailboarding/Kayaking","Paddleboarding/Kiteboarding/Kayaking")
+d1$Q5<-str_replace_all(d1$Q5,"Stand up paddleboarding/Kite or sailboarding/Kayaking","Paddleboarding/Kiteboarding/Kayaking")
 
 
 

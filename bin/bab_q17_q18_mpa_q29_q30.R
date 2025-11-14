@@ -13,9 +13,10 @@ library(colorspace)
 # --------------------------------------------------------------------------
 # load data ######-----------------------------------------------------------
 rm(list = ls(all = TRUE))
-setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+setwd("G:/My Drive/research/r_projects/bab_survey_jcs/")
 
-d1<-read_csv("./results/data_long4.csv")%>%
+d1<-read_csv("./results/data_long5.csv")%>%
   select(quest_comb,response_id,Q1,Q2,Q4,Q5,Q8,Q17:Q32_4,Q20a_5,Q24,Q25,Q27,Q28,Q31b,YEAR)%>%
   mutate(Q24 = as.character(Q24), Q17 = as.character(Q17)) %>%
   glimpse()
@@ -160,7 +161,7 @@ ggplot(props_nms, aes(x = Q18, y = pct, fill = Q18)) +
   ylim(0,.35)+
   scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, max(props_nms$pct) * 1.15)) +
   labs(
-    x = "Familiarity with National Marine Sanctuaries",
+    x = "Familiarity with\nNational Marine Sanctuaries",
     y = "Percent of Respondents",
     # title = "Distribution of nms familiarity",
     subtitle = paste0("\u03C7\u00B2(",
@@ -220,27 +221,24 @@ data.frame(Q29 = props_Q29$Q29, Residual = resids3)
 
 # -- graph --
 ggplot(props_Q29, aes(x = Q29, y = pct, fill = Q29)) +
-  geom_col(show.legend = FALSE) +  # hide redundant legend (optional)
+  geom_col(show.legend = FALSE) + 
   geom_text(aes(label = percent(pct, accuracy = 0.1)),
             vjust = -0.4, size = 3.8) +
-  ylim(0,.35)+
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, max(props_Q29$pct) * 1.15)) +
+  # Note: I removed ylim(0,.35) because it conflicts with scale_y_continuous below
+  scale_y_continuous(labels = percent_format(accuracy = 1), 
+                     limits = c(0, max(props_Q29$pct) * 1.15)) +
   labs(
-    x = "Purpose of MPAs", # and NMS
+    x = "Purpose of\nSanctuaries & MPAs", # Fixed the slash to \n
     y = "Percent of Respondents",
-    # title = "Understand Role of MPAs/NMS",
-    subtitle = paste0("\u03C7\u00B2(",
-                      chi_df3, ") = ", round(chi_stat3, 2), ", p ", fmt_p3)) +
+    subtitle = paste0("\u03C7\u00B2(", chi_df3, ") = ", round(chi_stat3, 2), ", p ", fmt_p3)) +
   theme_minimal(base_size = 18) +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
     strip.text = element_text(face = "bold"),
-    axis.title.x = element_text(margin = margin(t = 10)),  
+    axis.title.x = element_text(hjust = 0.5, margin = margin(t = 10)), # Added hjust = 0.5
     axis.title.y = element_text(margin = margin(r = 10)),   
-    plot.subtitle = element_text(
-      color = "grey40",    
-      hjust = 1 )   # move y-label left
-  )+
+    plot.subtitle = element_text(color = "grey40", hjust = 1)
+  ) +
   scale_fill_discrete_sequential(palette = "Purp")
 
 
@@ -294,7 +292,7 @@ ggplot(props_Q30, aes(x = Q30, y = pct, fill = Q30)) +
   ylim(0,.35)+
   scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, max(props_Q30$pct) * 1.15)) +
   labs(
-    x = "Role of Science for MPAs", # and NMS
+    x = "Role of Science for\nSanctuaries & MPAs", # and NMS
     y = "Percent of Respondents",
     # title = "Understand Role of Science for MPAs/NMS",
     subtitle = paste0("\u03C7\u00B2(", #

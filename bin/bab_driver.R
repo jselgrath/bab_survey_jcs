@@ -51,6 +51,20 @@ source("./bin/bab_clean_data_remove_headers.R")
 
 
 # --------------------------------
+# pull comments for analysis
+source("bab_pull_comments_q32.R")
+# input: ./results/data_long5.csv
+# output: ./results/q32_mec_survey_2024_comments_online2.csv # repeated for each survey version
+
+# -- activity questions --
+source("./bin/bab_q4_q5.R")
+# input:       ./results/data_long5.csv
+# output:      
+
+source("./bin/bab_q4_q5_race.R")
+# input:       ./results/data_long5.csv
+# output:      
+
 # -- mpa questions --
 source("./bin/bab_q17_q18_mpa_q29_q30.R")
 # input:       ./results/data_long5.csv

@@ -26,7 +26,7 @@ d1 <- readr::read_csv(in_csv, show_col_types = FALSE) %>%
   )%>%
   glimpse()
 
-# Keep only variables we need for this plot ----
+# Keep only variables for this plot ----
 d3 <- d1 %>%
   select(response_id, Q17, Q18, Q29, Q30, Q24)
 

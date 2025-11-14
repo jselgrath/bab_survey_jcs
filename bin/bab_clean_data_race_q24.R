@@ -47,6 +47,10 @@ d1$Q24<-gsub("Another race or ethnicity,Choose not to answer","Another race or e
 d1$Q24<-gsub("American Indian or Alaska Native,Asian,Black or African American,Hispanic or Latino,Middle Eastern or North African,Native Hawaiian or Pacific Islander,White,Another race or ethnicity,Choose not to answer","Choose not to answer",d1$Q24) # if people picked all
 d1$Q24<-gsub("American Indian or Alaska Native,Asian,Black or African American,Hispanic or Latino,Middle Eastern or North African,Native Hawaiian or Pacific Islander,White,Another race or ethnicity" ,"Choose not to answer",d1$Q24)
 d1$Q24<-gsub("Asian,Black or African American,Hispanic or Latino,Native Hawaiian or Pacific Islander,White,Choose not to answer" , "Choose not to answer" ,d1$Q24)
+d1$Q24<-gsub("Asian,Black or African American,Hispanic or Latino,Middle Eastern or North African,Native Hawaiian or Pacific Islander,White,Another race or ethnicity" , "Choose not to answer" ,d1$Q24)
+
+
+
 
 
 
@@ -55,13 +59,19 @@ d1$Q24<-gsub("Asian,Black or African American,Hispanic or Latino,Native Hawaiian
 
 
 # consider grouping with "white because they are such a small community
-# d1$Q24<-gsub("Middle Eastern or North African","White",d1$Q24)
+d1$Q24<-gsub("Middle Eastern or North African","White",d1$Q24)
 
 
 d1$Q24<-gsub("White,White","White",d1$Q24)
 d1$Q24<-gsub("White,Native Hawaiian or Pacific Islander,White","Native Hawaiian or Pacific Islander,White",d1$Q24)
+d1$Q24<-gsub("White,Choose not to answer","White",d1$Q24)
+
+# simplify name of Hawaiian and PI
+d1$Q24<-gsub("Native Hawaiian or Pacific Islander","Pacific Islander",d1$Q24)
 
 unique(d1$Q24)
+
+
 
 
 write_csv(d1,"./results/data_long2.csv")

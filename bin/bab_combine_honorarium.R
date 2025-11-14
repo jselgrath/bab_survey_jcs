@@ -55,8 +55,6 @@ cols_differ
 
 # look at names
 names(d_list)
-
-# set list for honorarium surveys ONLY (have same headings)
 d_list2<-d_list[1:5]
 names(d_list2)
 
