@@ -16,22 +16,27 @@ library(likert)
 # --------------------------------------------------------------------------
 # load data ######-----------------------------------------------------------
 rm(list = ls(all = TRUE))
-setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+# setwd("C:/Users/jennifer.selgrath/Documents/research/r_projects/bab_survey_jcs")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # -------------------------------
 # -- data cleaning --
 
+# new spring 2026 - will get merged later
+source("./bin/bab_new_temp_for_undergrads.R")
+
 # combine honorarium versions of survey
-source("./bin/bab_combine_honorarium.R")
+# source("./bin/bab_combine_honorarium.R")
 # input: folder with raw data from qualtrics 2025
 # output: ./results/data_honorarium_versions.csv
 
 
-# import joined data from qualitrics, remove low quality data, and organize headers
+# import joined and cleaned data from qualitrics
 source("./bin/bab_clean_data.R")
-# input:        ./data/bab_mec_combined_data_20251023.csv
-# output:       ./results/data_wide.csv
+# input:        ./data/Merged_Cleaned_QC_Final_v1.csv
+# output:       ./results/data_questions.csv
 # output:       ./results/data_long.csv
+
 
 source("./bin/bab_clean_data_race_q24.R")
 # input:       ./results/data_long.csv

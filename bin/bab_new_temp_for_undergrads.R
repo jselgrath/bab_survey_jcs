@@ -2,7 +2,7 @@
 # Jennifer Selgrath - base code from Tim Frawley
 # California Marine Sanctuary Foundation/ CINMS
 
-# goal: organize and clean data from qualtrics
+# goal: temp version of new responses - for undergrad projects
 
 # ----------------------------------------------------------
 # load libraries ######-------------------------------------
@@ -20,28 +20,24 @@ rm(list = ls(all = TRUE))
 # setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
-d1<-read_csv("./data/Merged_Cleaned_QC_Final_v1.csv")%>%
+
+d2<-read_csv("./data/bab_survey_2026_tribal_20260427_20_new.csv")%>%
+  select(UserLanguage,Q3:Q3b18_1_y,Q50,Q37b:Q49)%>%
+  mutate(Version="P2_tribal_new")%>%
   glimpse()
 
-d1
-colnames(d1)
+d3<-read_csv("./data/bab_survey_2025_in_person_prize - norcal_20260427_23_new.csv")%>%
+  select(UserLanguage,Q3:Q3b18_1_y,Q50,Q37b:Q49)%>%
+  mutate(Version="P2_norcal_ipp_new")%>%
+  glimpse()
 
-##Save row with question Specific Prompts for later
-# view(d1[1,]) # prompts
-tail(d1[2,]) # I think this row is not needed
+names(d2)
+names(d3)
 
-# questions
-d_questions<-d1[1,]
+# new responses -----------
 
-#misc, not needed row
-d1[2,]
+# combine
+d3a<-d3[3:nrow(d3),]
 
-#remove questions and misc row  
-d4<-d1[3:nrow(d1),]
-glimpse(d2)  
-
-
-
-# export formatted data --------------------------------
-write_csv(d4,"./results/data_long.csv")
-write_csv(d_questions,"./results/data_questions.csv")
+d5<-rbind(d2,d3a)%>%
+  glimpse()
