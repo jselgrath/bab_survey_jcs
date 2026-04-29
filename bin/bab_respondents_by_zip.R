@@ -4,25 +4,45 @@
 # GOAL: summarize counts of survey respondents by zip code
 # ---------------------------------------
 library(tidyverse)
+library(sf)
 # ---------------------------------------
+# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
+# ----------------------------
+rm(list = ls(all = TRUE))
 
-setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/mec_travel/gis/zip_codes_ca")
+d1<-st_read("california_zip_codes3.shp")%>%
+  mutate(zip_code=as.numeric(ZIP_CODE))%>%
+  select(-OBJECTID_1,-STATE,-Shape_Leng,- Shape_Area,-ZIP_CODE)%>%
+  filter(zip_code>=90001&zip_code<=96162)%>%
+  glimpse()
+# plot(d1)
 
-d1<-read_csv("./data/bab_mec_combined_data_20251023.csv")%>%
+
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
+d2<- read_csv("./doc/undergrad_projects_20260428.csv")%>%
+  mutate(QDemographic_PrimaryZip=as.numeric(QDemographic_PrimaryZip))%>%
+  filter(QDemographic_PrimaryZip>=90001&QDemographic_PrimaryZip<=96162)%>% # california zips
+  group_by(QDemographic_PrimaryZip)%>%
+  summarize(respondent_n=length(QDemographic_PrimaryZip))%>%
+  select(zip_code=QDemographic_PrimaryZip,respondent_n)%>%
+  # st_as_sf(d2, coords = c("x_long", "y_lat"), crs = 3310)%>% # make spatial files
+  glimpse()
+
+d3<-d1%>%
+  merge(d2)%>%
   glimpse()
 
 
-# range of CA zip codes
-# (a) ZIP (column Q22) between 90001 y 96162 (CA ZIP codes) *
 
-d1$Q22
+# save --------------------
+st_write(d3, "./gis/bab_zip_sample_size.shp", delete_layer = TRUE)
 
-d2<-d1%>%
-  mutate(Q22=as.numeric(Q22))%>%
-  filter(Q22>=90001&Q22<=96162)%>%
-  group_by(Q22)%>%
-  summarize(respondent_n=length(Q22))%>%
-  select(zip_code=Q22,respondent_n)%>%
-  glimpse()
-
-write_csv(d2,"./results/zip_sample_size.csv")
+st_write(
+  obj = d3, 
+  dsn = "./gis/bab_zip_sample_size.gdb", 
+  layer = "zip_sample_size", 
+  driver = "OpenFileGDB", # Use this driver for modern GDB support
+  delete_dsn = TRUE       # Optional: overwrites the GDB if it already exists
+)

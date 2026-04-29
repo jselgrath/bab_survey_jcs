@@ -1,4 +1,4 @@
-# Equity in Ocean Access (MPAs Equity and Climate (mec))
+# California Ocean Access: Benefits and Barriers (bab)
 # Jennifer Selgrath - base code from Tim Frawley
 # California Marine Sanctuary Foundation/ CINMS
 

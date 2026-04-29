@@ -21,96 +21,53 @@
 library(tidyverse)
 library(scales)
 library(colorspace)
+library(sf)
 
 rm(list = ls(all = TRUE))
 # setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
-setwd("G:/My Drive/research/r_projects/bab_survey_jcs/")
+# setwd("G:/My Drive/research/r_projects/bab_survey_jcs/")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 d0<-read_csv("./data/bab_q3_map_calculations_20260227.csv")%>%
+  select(-checked_against )%>%
   glimpse()
 
-d1<-read_csv("./results/q3_bab_survey_2025_maps_hdn_georect.csv")%>%
-  glimpse()
-# write_csv(d_sn,"./results/q3_bab_survey_2025_maps_sn_georect.csv")
-# d1<-read_csv(d_sb,"./results/q3_bab_survey_2025_maps_sb_georect.csv")
-d2<-read_csv("./results/q3_bab_survey_2025_maps_la_georect.csv")%>%
-  glimpse()
-# write_csv(d_sd,"./results/q3_bab_survey_2025_maps_sd_georect.csv")
-# write_csv(d_op,"./results/q3_bab_survey_2025_maps_op_georect.csv")
-# write_csv(d_tp,"./results/q3_bab_survey_2025_maps_tp_georect.csv")
-# write_csv(d_ippsc,"./results/q3_bab_survey_2025_maps_ippsc_georect.csv")
+unique(d0$map)
 
-
-# humboldt maps ------------
-d1_dn<-d1%>%
-  filter(map_north=="Del Norte")%>%
-  mutate(map=map_north)%>%
-  left_join(d0)%>%
+d1<-read_csv("./doc/undergrad_projects_20260428.csv")%>%# 
   glimpse()
 
-d1_h<-d1%>%
-  filter(map_north=="Humboldt")%>%
-  mutate(map=map_north)%>%
-  left_join(d0)%>%
+d2<-d1%>%
+  full_join(d0)%>%
+  unique()%>%
+  mutate(x_long=x1+(Final_X*x2_y2_cell_size))%>% # x=((x2_y2_cell_size*sb_s_x)+x1),
+  mutate(y_lat=y1-(Final_Y*x2_y2_cell_size))%>% #y=(-(x2_y2_cell_size*sb_s_y)+y1) - same results from both
+  filter(!is.na(Final_X)) %>% #remove surveys with no value
   glimpse()
 
-d1_m<-d1%>%
-  filter(map_north=="Mendicino")%>%
-  mutate(map=map_north)%>%
-  left_join(d0)%>%
+names(d2)
+
+
+
+# make spatial files --------------------
+d2_sf <- st_as_sf(d2, coords = c("x_long", "y_lat"), crs = 3310)
+
+d3_sf<-  d2_sf%>%
+  select(QDemographic_CA_Years:QDemographic_Education_clean)%>%
   glimpse()
 
-d1_sf<-d1%>%
-  filter(map_north=="San Francisco")%>%
-  mutate(map=map_north)%>%
-  left_join(d0)%>%
-  glimpse()
+plot(d3_sf)
 
-# la maps ------------
-d2_sd<-d2%>%
-  filter(map_south=="San Diego")%>%
-  mutate(map=map_south)%>%
-  left_join(d0)%>%
-  glimpse()
+# save --------------------------
+write_csv(d2,"./results/q3_coordinates_all.csv")
 
-d2_oc<-d2%>%
-  filter(map_south=="Orange")%>%
-  mutate(map=map_south)%>%
-  left_join(d0)%>%
-  glimpse()
+st_write(d3_sf, "./gis/q3_coordinates.shp", delete_layer = TRUE)
 
-d2_la<-d2%>%
-  filter(map_south=="Los Angeles")%>%
-  mutate(map="la")%>% # make lowercase
-  select(version:region,map,la_x, la_y,year=YEAR)%>%
-  left_join(d0)%>%
-  mutate(
-    x=round(((x2_y2_cell_size*la_x)+x1),2),
-    y=round((-(x2_y2_cell_size*la_y)+y1),2)
-  )%>%
-  glimpse()
+st_write(
+  obj = d3_sf, 
+  dsn = "./gis/q3_coordinates.gdb", 
+  layer = "beach_access", 
+  driver = "OpenFileGDB", # Use this driver for modern GDB support
+  delete_dsn = TRUE       # Optional: overwrites the GDB if it already exists
+)
 
-d2_v<-d2%>%
-  filter(map_south=="Ventura")%>%
-  mutate(map=map_south)%>%
-  left_join(d0)%>%
-  glimpse()
-
-d2_sb<-d2%>%
-  filter(map_south=="Santa Barbara")%>%
-  mutate(map=map_south)%>%
-  select(version:region,map,sb_s_x, sb_s_y,year=YEAR)%>%
-  mutate(map="sb")%>% # make lowercase
-  left_join(d0)%>%
-  mutate(
-    x=((x2_y2_cell_size*sb_s_x)+x1),
-    y=(-(x2_y2_cell_size*sb_s_y)+y1)
-  )%>%
-  glimpse()
-
-
-# graphs --------------------
-
-# save
-write_csv(d2_la,"./results/q3_georef_check_la.csv")
-write_csv(d2_sb,"./results/q3_georef_check_sb5.csv")
