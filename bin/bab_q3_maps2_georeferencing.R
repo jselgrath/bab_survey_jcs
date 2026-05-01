@@ -34,8 +34,11 @@ d0<-read_csv("./data/bab_q3_map_calculations_20260227.csv")%>%
 
 unique(d0$map)
 
-d1<-read_csv("./doc/undergrad_projects_20260428.csv")%>%# 
+d1<-read_csv("./results/undergrad_projects_20260428c.csv")%>%# 
   glimpse()
+
+unique(d1$QMapping_North_County)
+unique(d1$QMapping_Central_County) # No Alameda
 
 d2<-d1%>%
   full_join(d0)%>%
@@ -61,11 +64,11 @@ plot(d3_sf)
 # save --------------------------
 write_csv(d2,"./results/q3_coordinates_all.csv")
 
-st_write(d3_sf, "./gis/q3_coordinates.shp", delete_layer = TRUE)
+st_write(d3_sf, "./gis_results/q3_coordinates.shp", delete_layer = TRUE)
 
 st_write(
   obj = d3_sf, 
-  dsn = "./gis/q3_coordinates.gdb", 
+  dsn = "./gis_results/q3_coordinates.gdb", 
   layer = "beach_access", 
   driver = "OpenFileGDB", # Use this driver for modern GDB support
   delete_dsn = TRUE       # Optional: overwrites the GDB if it already exists

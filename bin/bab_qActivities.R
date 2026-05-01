@@ -1,6 +1,6 @@
-# Equity in Ocean Access (Benefits and Barriers (bab))
+# California Ocean Access: Benefits and Barriers (bab)
 # Jennifer Selgrath 
-# California Marine Sanctuary Foundation/ CINMS
+# California Marine Sanctuary Foundation
 
 # goal: subset cleaned data for graphing and making long version - ecosystem services
 
@@ -10,41 +10,45 @@ library(tidyverse)
 library(scales)
 library(colorspace)
 
+# note in cases where write in text fits two categories, then it is assigned the first one that matches
+
 # --------------------------------------------------------------------------
-# load data ######-----------------------------------------------------------
+# load data -----------------------------------------------------------
 rm(list = ls(all = TRUE))
-setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 d1<-read_csv("./results/data_long5.csv")%>%
-  select(quest_comb,response_id,Q1,Q2,Q4,Q5,Q8,Q17:Q32_4,Q20a_5,Q24,Q25,Q27,Q28,Q31b,YEAR)%>%
-  mutate(Q24 = as.character(Q24), Q4 = as.character(Q4), Q5 = as.character(Q5)) %>%
-  mutate(Q2=if_else(Q2=="Less than once a year (i.e., rarely or never)","Less than once a year",Q2))%>%
+  select(ResponseId,QDesired_Time,QActual_Time,QImportant_Activities,QImportant_Activities_TEXT,QImportant_Activities_Most,QImportant_Activities_Most_TEXT,QTransport_Time,QActivity_Mentor,QActivity_Mentor_TEXT,
+  QActivity_Companion,QFishing,QFishing_Type,QDemographic_Home:QDemographic_Swimming,Version,Mechanism,EJ_Bin,Distance,Distance_Binned)%>%
+  # mutate(QActual_Time4 = as.character(QActual_Time4), Q4 = as.character(Q4), Q5 = as.character(Q5)) %>%
+  # mutate(QActual_Time=if_else(QActual_Time=="Less than once a year (i.e., rarely or never)","Less than once a year",QActual_Time))%>%
   glimpse()
 d1
 
 
-levels(factor(d1$Q24)) # check race categories
+levels(factor(d1$QDemographic_Race)) # check race categories
 
 # organizing activity categories
 activities <- c(
-  "Swimming or bodysurfing",
-  "Group or family gatherings or activities",
-  "Meditation/Reading/Relaxing",
-  "Enjoy the views/sunsets from car",
-  "Fishing or collecting food",
-  "Beach games or sports",
-  "Surfing",
-  "Observing or photographing nature",
+  "Beach games or sports",  
   "Bicycling/Roller skating/Skateboarding",
-  "Snorkeling/Scuba Diving",
-  "Walking or running",
-  "Sailing/Boating",
-  "Paddleboarding/Kiteboarding/Kayaking",
-  "Paid work",
-  "Festivals",
   "Cultural or religious ceremonies",
-  "Another activity",
-  "Volunteering"
+  "Enjoy the views/sunsets", # Enjoy the views/sunsets
+  "Festivals",
+  "Fishing or collecting food",
+  "Group or family gatherings or activities",
+  "Meditation/Reading/Relaxing/Art",      # Meditation/Reading/Relaxing/Art
+  "Observing or photographing nature",
+  "Paddleboarding/Kiteboarding/Kayaking/Canoeing", #Paddleboarding/Kiteboarding/Kayaking/Rowing/Canoeing
+  "Paid work",
+  "Sailing/Boating",
+  "Snorkeling/Scuba Diving",
+  "Surfing",
+  "Swimming or bodysurfing", #Swimming/Bodysurfing
+  "Volunteering",
+  "Walking/Running/Hiking",              # Walking/Running/Hiking
+  "Another activity"
 )
 
 activities_ordered <- c(
@@ -52,24 +56,27 @@ activities_ordered <- c(
   "Another activity"
 )
 
-activities_ordered
 
 
 # -- select Activity and Frequency questions --
 d3<-d1%>%
   # filter(Q17!=4) %>% # error - unsure of source
-  select(response_id,Q1,Q2,Q4,Q5)%>%
+  select(ResponseId,QDesired_Time,QActual_Time,QImportant_Activities:QImportant_Activities_Most_TEXT)%>%
   glimpse()
 
-unique(d3$Q1)
-unique(d3$Q2)
-unique(d3$Q4)
-unique(d3$Q5)
+unique(d3$QDesired_Time)
+unique(d3$QActual_Time)
+unique(d3$QImportant_Activities)
+unique(d3$QImportant_Activities_TEXT)
+unique(d3$QImportant_Activities_Most)
+
+
+
 
 # -- relevel and combine categories from 2024 data to match 2025 data, or to collapse small categories -------------------
 
 # Activities -----------------
-# d4 <- d3 %>%
+# d4 <- d1 %>%
 #   filter(!is.na(Q4)) %>%
 #   glimpse()
 # unique(d4$Q4)
@@ -80,7 +87,7 @@ unique(d3$Q5)
 # -- Activity graphs - Q5 ---------------------------
 
 # -- organize --
-counts_activity <- d3 %>%
+counts_activity <- d1 %>%
   filter(!is.na(Q5))%>%
   filter(Q5!="Choose not to answer")%>%
   mutate(
@@ -133,16 +140,16 @@ ggplot(props_activity, aes(x = Q5, y = pct, fill = Q5)) +
 
 
 ggsave("./doc/Q5_activity.png",   width = 15, height = 7,     # size in inches
-  units = "in",              # "in", "cm", or "mm"
-  dpi = 300,                 # resolution (300+ for publication quality)
-  bg = "white"               # background color (use "transparent" if needed)
+       units = "in",              # "in", "cm", or "mm"
+       dpi = 300,                 # resolution (300+ for publication quality)
+       bg = "white"               # background color (use "transparent" if needed)
 )
 
 
 
 # Q4 --------------------
 # Explode multi-select activity (Q4) so multi-activity respondents count in each chosen activity ----
-d4 <- d3 %>%
+d4 <- d1 %>%
   mutate(Q4 = as.character(Q4)) %>%
   tidyr::separate_rows(Q4, sep = ",") %>%
   mutate(Q4 = stringr::str_trim(Q4)) %>%

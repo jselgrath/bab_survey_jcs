@@ -38,7 +38,7 @@ d1[2,]
 
 #remove questions and misc row  
 d4<-d1[3:nrow(d1),]
-glimpse(d2)  
+glimpse(d4)  
 
 
 

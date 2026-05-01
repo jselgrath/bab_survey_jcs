@@ -24,26 +24,27 @@ library(colorspace)
 # --------------------------------------------------------------------------
 # load data ######-----------------------------------------------------------
 rm(list = ls(all = TRUE))
-setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
-d1<-read_csv("./results/data_long5.csv")%>%
+d1<-read_csv("./doc/undergrad_projects_20260428.csv")%>% #("./results/data_long5.csv")%>%
   glimpse()
 
-unique(d1$VERSION)
+unique(d1$Version)
 
-length(unique(d1$response_id)) # confirm this is unique to all responses
+length(unique(d1$ResponseId)) # confirm this is unique to all responses
 
 
 # select ID and comment and version
-d2<-d1%>%
-  select(response_id,VERSION,format,Q32)%>%
-  glimpse()
+# d2<-d1%>%
+#   select(response_id,VERSION,format,Q32)%>%
+#   glimpse()
 
 
 
 # List of new column names -- may update
 new_cols <- c(
-  "Q32_clean",
+  "comments_clean",
   "language",
   "paper",
   "barriers",
@@ -70,14 +71,14 @@ new_cols <- c(
 # function to remove blank lines and add new text
 f1<-function(data=d2,version, new_col=new_cols){
   data%>%
-    filter(VERSION==version)%>%
-    filter(Q32!="",
-           Q32!="N/A",
-           Q32!="No",
-           Q32!="no")%>%
-    mutate(Q32=gsub("ðŸ˜", "[emogi_Beaming Face With Smiling Eyes]", Q32),
-           Q32=gsub("ðŸŒŠ", "[emogi_Wave]", Q32),
-           Q32=gsub("â€™", "'", Q32))%>% 
+    # filter(VERSION==version)%>%
+    filter(Comments!="",
+           Comments!="N/A",
+           Comments!="No",
+           Comments!="no")%>%
+    mutate(Comments=gsub("ðŸ˜", "[emogi_Beaming Face With Smiling Eyes]", Comments),
+           Comments=gsub("ðŸŒŠ", "[emogi_Wave]", Comments),
+           Comments=gsub("â€™", "'", Comments))%>% 
     mutate(!!!setNames(rep(list(NA), length(new_cols)), new_cols))%>%
     glimpse()
 }

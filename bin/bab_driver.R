@@ -16,6 +16,7 @@ library(likert)
 # --------------------------------------------------------------------------
 # load data ######-----------------------------------------------------------
 rm(list = ls(all = TRUE))
+
 # setwd("C:/Users/jennifer.selgrath/Documents/research/r_projects/bab_survey_jcs")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
@@ -45,13 +46,22 @@ source("./bin/bab_clean_data_gender_q25.R")
 # input:       ./results/data_long2.csv
 # output:      ./results/data_long3.csv
 
-source("./bin/bab_clean_data_activities_q4_q5.R")
+
+source("./bin/bab_clean_data_activities_q4_q5.R") # updating this...
 # input:       ./results/data_long3.csv
 # output:      ./results/data_long4.csv
 
-# source("./bin/bab_clean_data_remove_headers.R")
+# clean other activity text and make columns for some variables (e.g., consumptive/non-consumptive; dog walking)
+source("./bin/bab_clean_data_activities_text_comments.R")
 # input:       ./results/data_long4.csv
 # output:      ./results/data_long5.csv
+
+# source("bab_comments_cleaned_xlsx_to_csv.R")
+# input:   folder_path <- "./data/comments/"    .xlsx files
+# output:  folder_path <- "./data/comments/"    .csv files > have been manually cleaned - do not overwrite!    
+
+
+
 
 # undergrad projects ----------------------------
 
@@ -63,29 +73,66 @@ source("./bin/bab_new_temp_for_undergrads.R")
 # output:     ./doc/undergrad_projects_20260428.csv 
 
 
-# q3 maps - transform pixel coordinates to lat long
-source("./bin/bab_q3_maps2_georeferencing.R")
-# input:      ./data/bab_q3_map_calculations_20260227.csv
-#             ./doc/undergrad_projects_20260428.csv 
-# output:     ./results/q3_coordinates_all.csv
-#             ./results/q3_coordinates.shp
-#             ./results/q3_coordinates.gdb  layer = "beach_access"
 
-# q3 maps - delete points >5km from coast and snap points <5km from coast to coast
-source("./bin/bab_q3_maps_snap_to_coast.R")
-# input:      ./results/q3_coordinates.shp
-#             ./results/q3_coordinates.gdb  layer = "beach_access"    
-# output:     ./gis/q3_coordinates_2.shp 
-#             ./results/q3_coordinates.gdb  layer = "beach_access_2"
+# manually ran ./doc/undergrad_projects_20260428.csv  through race, gender cleaning tools above
+# output:     ./doc/undergrad_projects_20260428c.csv 
 
-# nadia - zip codes
-source("./bin/bab_respondents_by_zip.R")
+
+# ------------------------------
+# undergrad project 1: cleaned comments - q32, q50
+# ------------------------------
 
 
 # pull comments for analysis
-source("bab_pull_comments_q32.R")
+# done before students cleaned data
+source("./bin/bab_pull_comments_q32.R")
 # input: ./results/data_long5.csv
 # output: ./results/q32_mec_survey_2024_comments_online2.csv # repeated for each survey version
+
+
+# join cleaned comments to other demographic data
+# Note: this version is missing the surveys closed in April 2026. Will need to rerun and update when final coding is completed.
+source("./bin/bab_comments_cleaned_joining_coded.R")
+# input:      ./results/undergrad_projects_20260428c.csv
+#             ./data/comments/" # for list of .csv files with comments
+# output:     ./results/q32_bab_comments_cleaned_demographics_not_all_versions.csv
+
+
+
+# ------------------------------
+# undergrad project 2:  location on the coastline where you spend the most time - q3
+# student: emily lombardi, ucsb
+# ------------------------------
+# q3 maps - transform pixel coordinates to lat long
+source("./bin/bab_q3_maps2_georeferencing.R")
+# input:      ./data/bab_q3_map_calculations_20260227.csv # alamdea is missing from calculation,but no alameda maps from survey
+#             ./doc/undergrad_projects_20260428c.csv 
+# output:     ./results/q3_coordinates_all.csv
+#             ./gis/q3_coordinates.shp
+#             ./gis/q3_coordinates.gdb  layer = "beach_access"
+
+
+# q3 maps - delete points >5km from coast and snap points <5km from coast to coast
+source("./bin/bab_q3_maps_snap_to_coast.R")
+# input:      ./gis/q3_coordinates.shp
+#             ./gis/q3_coordinates.gdb  layer = "beach_access"    
+# output:     ./gis/q3_coordinates_2.shp 
+#             ./gis/q3_coordinates.gdb  layer = "beach_access_2"
+
+# gis map: bab_q3_responses.aprx
+
+# ------------------------------
+# undergrad project 3: mapping zip codes where respondents live
+# student: nadia garcia, csusm
+# ------------------------------
+# zip codes
+source("./bin/bab_respondents_by_zip.R")
+# input:    ./doc/undergrad_projects_20260428.csv  
+#             california_zip_codes3.shp
+# output:   ./gis/bab_zip_sample_size.shp  
+#           ./gis/bab_zip_sample_size.gdb", layer = "zip_sample_size"
+
+
 
 # --------------------------------
 

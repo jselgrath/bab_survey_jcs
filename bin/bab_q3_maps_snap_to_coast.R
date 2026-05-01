@@ -15,7 +15,7 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 # ----------------------------
 
-d1 <- st_read(dsn = "./gis/q3_coordinates.gdb", layer = "beach_access")%>%
+d1 <- st_read(dsn = "./gis_results/q3_coordinates.gdb", layer = "beach_access")%>%
   glimpse()
 
 d2<-st_read("G:/My Drive/research/gis/CA_EEZ/CA_EEZ.shp")%>%
@@ -51,11 +51,11 @@ if(length(to_snap_idx) > 0) {
 d3
 
 # save ---------------------
-st_write(d3, "./gis/q3_coordinates_2.shp", delete_layer = TRUE)
+st_write(d3, "./gis_results/q3_coordinates_2.shp", delete_layer = TRUE)
 
 st_write(
   obj = d3_sf, 
-  dsn = "./gis/q3_coordinates.gdb", 
+  dsn = "./gis_results/q3_coordinates.gdb", 
   layer = "beach_access_2", 
   driver = "OpenFileGDB", # Use this driver for modern GDB support
   delete_dsn = TRUE       # Optional: overwrites the GDB if it already exists

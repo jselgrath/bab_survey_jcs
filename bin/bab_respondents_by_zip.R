@@ -11,7 +11,7 @@ setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 # ----------------------------
 rm(list = ls(all = TRUE))
 
-setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/mec_travel/gis/zip_codes_ca")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/mec_travel/gis_data/zip_codes_ca")
 d1<-st_read("california_zip_codes3.shp")%>%
   mutate(zip_code=as.numeric(ZIP_CODE))%>%
   select(-OBJECTID_1,-STATE,-Shape_Leng,- Shape_Area,-ZIP_CODE)%>%
@@ -21,7 +21,7 @@ d1<-st_read("california_zip_codes3.shp")%>%
 
 
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
-d2<- read_csv("./doc/undergrad_projects_20260428.csv")%>%
+d2<- read_csv("./results/undergrad_projects_20260428c.csv")%>%
   mutate(QDemographic_PrimaryZip=as.numeric(QDemographic_PrimaryZip))%>%
   filter(QDemographic_PrimaryZip>=90001&QDemographic_PrimaryZip<=96162)%>% # california zips
   group_by(QDemographic_PrimaryZip)%>%
@@ -37,11 +37,11 @@ d3<-d1%>%
 
 
 # save --------------------
-st_write(d3, "./gis/bab_zip_sample_size.shp", delete_layer = TRUE)
+st_write(d3, "./gis_results/bab_zip_sample_size.shp", delete_layer = TRUE)
 
 st_write(
   obj = d3, 
-  dsn = "./gis/bab_zip_sample_size.gdb", 
+  dsn = "./gis_results/bab_zip_sample_size.gdb", 
   layer = "zip_sample_size", 
   driver = "OpenFileGDB", # Use this driver for modern GDB support
   delete_dsn = TRUE       # Optional: overwrites the GDB if it already exists
