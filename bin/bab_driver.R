@@ -56,7 +56,18 @@ source("./bin/bab_clean_data_activities_text_comments.R")
 # input:       ./results/data_long4.csv
 # output:      ./results/data_long5.csv
 
-# source("bab_comments_cleaned_xlsx_to_csv.R")
+# make column for influencer fishing responses
+source("./bin/bab_clean_data_influencer_aw.R")
+# input:       ./results/data_long5.csv
+# output:      ./results/data_long6.csv
+
+# chart relative influence of influencer vs other online responses
+source("./bin/bab_fishing_most_table.R")
+# input:       ./results/data_long6.csv
+# output:      ./doc/activity_online_fishing_most_monthly.csv
+#              ./doc/activity_online_fishing_most_summaries.csv
+
+# source("bab_comments_cleaned_xlsx_to_csv.R") - good but overwrites files (there is a backup)
 # input:   folder_path <- "./data/comments/"    .xlsx files
 # output:  folder_path <- "./data/comments/"    .csv files > have been manually cleaned - do not overwrite!    
 
@@ -121,6 +132,8 @@ source("./bin/bab_q3_maps_snap_to_coast.R")
 
 # gis map: bab_q3_responses.aprx
 
+
+
 # ------------------------------
 # undergrad project 3: mapping zip codes where respondents live
 # student: nadia garcia, csusm
@@ -138,12 +151,17 @@ source("./bin/bab_respondents_by_zip.R")
 
 
 # -- activity questions --
-source("./bin/bab_q4_q5.R")
-# input:       ./results/data_long5.csv
-# output:      
+source("./bin/bab_qActivities.R")
+# input:       ./results/data_long6.csv
+# output:      ./results/.csv
+
+
+
+
+
 
 source("./bin/bab_q4_q5_race.R")
-# input:       ./results/data_long5.csv
+# input:       ./results/data_long6.csv
 # output:      
 
 # -- mpa questions --
