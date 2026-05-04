@@ -66,6 +66,10 @@ source("./bin/bab_fishing_most_table.R")
 # input:       ./results/data_long6.csv
 # output:      ./doc/activity_online_fishing_most_monthly.csv
 #              ./doc/activity_online_fishing_most_summaries.csv
+#              ./doc/activity_online_fishing_any_monthly.csv
+#              ./doc/activity_online_fishing_any_summaries.csv
+
+
 
 # source("bab_comments_cleaned_xlsx_to_csv.R") - good but overwrites files (there is a backup)
 # input:   folder_path <- "./data/comments/"    .xlsx files
@@ -154,10 +158,6 @@ source("./bin/bab_respondents_by_zip.R")
 source("./bin/bab_qActivities.R")
 # input:       ./results/data_long6.csv
 # output:      ./results/.csv
-
-
-
-
 
 
 source("./bin/bab_q4_q5_race.R")

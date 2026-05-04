@@ -60,23 +60,23 @@ standardize_to_official <- function(text) {
     # --- 1. Active Recreation ---
     str_detect(text, "surf") ~ "Surfing",
     str_detect(text, "swim|bath|soak|cool|boogey|boogie") ~ "Swimming or bodysurfing",
-    str_detect(text, "walk|run|hiking|m.s walks|dog|puppy|dig|perr|犬|狗") ~ "Walking or running",
+    str_detect(text, "walk|run|hiking|m.s walks|dog|puppy|dig|perr|犬|狗") ~ "Walking/Running/Hiking",
     str_detect(text, "snorkeling|scuba|freediving|diving") ~ "Snorkeling/Scuba Diving",
-    str_detect(text, "paddle|kayak|canoe|rowing|outrigger|row") ~ "Paddleboarding/Kiteboarding/Kayaking",
+    str_detect(text, "paddle|kayak|canoe|rowing|outrigger|row") ~ "Paddleboarding/Kiteboarding/Kayaking/Canoeing",
     str_detect(text, "sail|boat|ship|maritime") ~ "Sailing/Boating",
     str_detect(text, "bicycling|roller|skate|skating|atv|roll") ~ "Bicycling/Roller skating/Skateboarding",
-    str_detect(text, "games|sports|baseball|bat|kite") ~ "Beach games or sports",
+    str_detect(text, "games|sports|baseball|bat|kite") ~ "Beach games/Sports/Yoga",
     
     # --- 2. Views & Nature ---
-    str_detect(text, "view|sunset|admire|looking at ocean") ~ "Enjoy the views/sunsets from car",
-    str_detect(text, "tide|observing|photo|nature|docent|birding|beach combing|looking at ocean life|aquarium|exploring|agetes|monitoring|research|shell ") ~ "Observing or photographing nature",
-    str_detect(text, "relax|meditation|read|vibing|nap|sunbathing|sun tan|yoga|quiet|art|paint|singing|create|people watching|sketch|breeze|retirement|listening") ~ "Meditation/Reading/Relaxing",
+    str_detect(text, "view|sunset|admire|looking at ocean") ~ "Enjoying views/sunsets",
+    str_detect(text, "tide|observing|photo|nature|docent|birding|beach combing|looking at ocean life|aquarium|exploring|agetes|monitoring|research|shell|research|crab|research|monitor|science|field|condor|salmon|whale|clam survey|intertidal work|transect|ecology|marine mammal ") ~ "Nature Observing/Photographing/Education/Research",
+    str_detect(text, "relax|meditation|read|vibing|nap|sunbathing|sun tan|yoga|quiet|art|paint|singing|create|people watching|sketch|breeze|retirement|listening") ~ "Meditation/Reading/Relaxing/Art",
     
     # --- 3. Social/Cultural/Work ---
     str_detect(text, "fishing|collecting food|clam|crab|spearfishing") ~ "Fishing or collecting food",
     str_detect(text, "ceremon|indigenous|native|lakota|land back|spirit|religious|prayer|offering|ancestor") ~ "Cultural or religious ceremonies",
     str_detect(text, "festival") ~ "Festivals",
-    str_detect(text, "group|family|gathering|kids|friend|visitors|school|party|drum circle|danc|bonfire|dine|visit|foodie|drinking|Dining") ~ "Group or family gatherings or activities",
+    str_detect(text, "group|family|gathering|kids|friend|visitors|school|party|drum circle|danc|bonfire|dine|visit|foodie|drinking|Dining") ~ "Group/Family gatherings or activities",
     str_detect(text, "volunteer|clean|restoration|trash|invasive|dándoles|unpaid") ~ "Volunteering",
     str_detect(text, "job|income|paid work|navy|work|coach|institute|commercial") ~ "Paid work",
     
@@ -148,55 +148,15 @@ d2 <- d1 %>%
       QImportant_Activities_Most == "Another activity" & !is.na(QImportant_Activities_Cleaned) ~ QImportant_Activities_Cleaned,
       
       # 2. If 'Most' is "Another activity" but no clean category was found, keep original
-      # (This preserves the data even if our regex didn't catch the specific activity)
+      # (This preserves the data even if regex didn't catch the specific activity)
       QImportant_Activities_Most == "Another activity" & is.na(QImportant_Activities_Cleaned) ~ "Another activity",
       
       # 3. Otherwise, keep the original checkbox selection
       TRUE ~ QImportant_Activities_Most
-    ),
+    ))%>%
 
   
-  
-    # add columns for sub-categories ----------
-   
-    is_spiritual_cultural = if_else(
-      QImportant_Activities_Cleaned == "Cultural or religious ceremonies" | 
-        str_detect(QImportant_Activities, fixed("Cultural or religious ceremonies")) |
-        str_detect(str_to_lower(QImportant_Activities_TEXT), "spirit|religious|meditation|drum circle|singing|yoga|lakota|prayer|offering|ancestor|dance|ceremon|indigenous|native"),
-      "Spiritual/Cultural Use", "Non-spiritual use", missing = "Non-spiritual use"
-    ),
-    
-    # B. SCIENTIFIC RESEARCH FLAG
-    is_research = if_else(
-      QImportant_Activities_Cleaned == "Scientific Research" | 
-        str_detect(str_to_lower(QImportant_Activities_TEXT), "research|monitor|science|field|condor|salmon|whale|clam survey|intertidal work|transect|ecology|marine mammal"),
-      "Research/Monitoring", "Non-research use", missing = "Non-research"
-    ),
-    
-    # C. DOG FLAG
-    is_dog_activity = if_else(
-      str_detect(str_to_lower(QImportant_Activities_TEXT), "dog|puppy|dig|perr|犬|狗") | 
-        str_detect(str_to_lower(comment_clean), "dog|puppy|canine|pet|perr|犬|狗"), 
-      "Dog related", "No dog mentioned", missing = "No dog mentioned"
-    ),
-    
-    # D. CIVIC ENGAGEMENT FLAG
-    is_civic_engagement = if_else(
-      QImportant_Activities_Cleaned == "Volunteering" |
-        str_detect(QImportant_Activities, fixed("Volunteering")) |
-        str_detect(str_to_lower(QImportant_Activities_TEXT), "activism|restoration|clean up|stewardship|land back"),
-      "Civic/Stewardship use", "Non-civic use", missing = "Non-civic use"
-    ),
-    
-    # E. CONSUMPTIVE FLAG
-    is_consumptive = if_else(
-      QImportant_Activities_Cleaned == "Fishing or collecting food" | 
-        str_detect(QImportant_Activities, fixed("Fishing or collecting food")) |
-        str_detect(str_to_lower(QImportant_Activities_TEXT), "collect shell|glass|rock hunt|agetes|渔|钓"), 
-      "Consumptive", "Non-consumptive", missing = "Non-consumptive"
-    )
-  ) %>%
-  
+
   # formatting clean up
   mutate(QImportant_Activities2 = str_replace_all(QImportant_Activities2, ", ,", ","),
          QImportant_Activities2 = str_replace_all(QImportant_Activities2, ",,", ","),
@@ -205,8 +165,8 @@ d2 <- d1 %>%
   glimpse()
 
 
-
-
+d2$QImportant_Activities2[d2$QImportant_Activities2=="Swimming or bodysurfing"]<-"Swimming/Bodysurfing"
+d2$QImportant_Activities_Most2[d2$QImportant_Activities_Most2=="Swimming or bodysurfing"]<-"Swimming/Bodysurfing"
 
 # check----------------------------
 filter(d2,is.na(QImportant_Activities_Cleaned))%>%
@@ -220,15 +180,17 @@ d2 %>%
 
 # See how well it worked
 table(d2$QImportant_Activities_Cleaned)
+table(d2$QImportant_Activities2)
 table(d2$QImportant_Activities)
-table(d2$is_spiritual_cultural)
-table(d2$is_consumptive)
+table(d2$QImportant_Activities_Most2)
 
 
 
 # check other ways
-d2%>%select(QImportant_Activities_TEXT,QImportant_Activities2)%>%view()
+d2%>%select(QImportant_Activities_TEXT,QImportant_Activities2)#%>%view()
 
+glimpse(d2)
+unique(d2$QImportant_Activities)
 
 # save ------------
 write_csv(d2,"./results/data_long5.csv")

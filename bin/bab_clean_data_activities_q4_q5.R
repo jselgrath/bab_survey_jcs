@@ -74,23 +74,31 @@ d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Vo
 d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Sailing/Boating (engine powered)","Sailing/Boating")
 d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Sailing/Boating (engine powered)","Sailing/Boating")
 
-d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Beach games or sports (e.g., frisbee, volleyball, yoga)","Beach games or sports/Yoga")
-d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Beach games or sports (e.g., frisbee, volleyball, yoga)","Beach games or sports/Yoga")
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Beach games or sports (e.g., frisbee, volleyball, yoga)","Beach games/Sports/Yoga")
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Beach games or sports (e.g., frisbee, volleyball, yoga)","Beach games/Sports/Yoga")
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Beach games or sports","Beach games/Sports/Yoga")
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Beach games or sports","Beach games/Sports/Yoga")
 
-d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Group or family gatherings or activities (e.g., family outing, bbq)","Group/Family gatherings")
-d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Group or family gatherings or activities (e.g., family outing, bbq)","Group/Family gatherings")
 
-d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Group/Family gatherings or activities","Group/Family gatherings")
-d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Group/Family gatherings or activities","Group/Family gatherings")
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Group or family gatherings or activities (e.g., family outing, bbq)","Group/Family gatherings or activities")
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Group or family gatherings or activities (e.g., family outing, bbq)","Group/Family gatherings or activities")
+
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Group or family gatherings or activities","Group/Family gatherings or activities")
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Group or family gatherings or activities","Group/Family gatherings or activities")
 
 d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing/Art")
 d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing/Art")
 
-d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Observing or photographing nature or wildlife, outdoor education","Observing or photographing nature") #Observing or photographing nature/Outdoor education
-d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Observing or photographing nature or wildlife, outdoor education","Observing or photographing nature")
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Observing or photographing nature or wildlife, outdoor education","Nature Observing/Photographing/Education/Research") #Observing or photographing nature/Outdoor education
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Observing or photographing nature or wildlife, outdoor education","Nature Observing/Photographing/Education/Research")
 
-d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Driving or sitting in your car to enjoy the views/sunsets","Enjoy the views/sunsets")
-d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Driving or sitting in your car to enjoy the views/sunsets","Enjoy the views/sunsets")
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Observing or photographing nature","Nature Observing/Photographing/Education/Research") #Observing or photographing nature/Outdoor education
+
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Driving or sitting in your car to enjoy the views/sunsets","Enjoying views/sunsets")
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Driving or sitting in your car to enjoy the views/sunsets","Enjoying views/sunsets")
+
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Enjoy the views/sunsets from car","Enjoying views/sunsets")
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Enjoy the views/sunsets from car","Enjoying views/sunsets")
 
 d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Cultural or religious practices or ceremonies","Cultural or religious ceremonies")
 d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Cultural or religious practices or ceremonies","Cultural or religious ceremonies")
@@ -108,11 +116,11 @@ unique(d1$QImportant_Activities)
 unique(d1$QImportant_Activities_Most)
 
 
-# check NAs for most important activiites - none - in other text from first prompt
+# check NAs for most important activities - none - in other text from first prompt
 d1%>%
   filter(is.na(QImportant_Activities_Most))%>%
-  select(QImportant_Activities_Most_TEXT)%>%
-  view()
+  select(QImportant_Activities_Most_TEXT)#%>%
+  #view()
 
 
 # other activities
