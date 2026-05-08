@@ -2,7 +2,7 @@
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation
 
-# goal: make of table of fishing as most important activity vs all surveys by month
+# goal: make of table of fishing as most important activity vs all surveys by month for online data
 
 # ----------------------------------------------------------
 # load libraries ######-------------------------------------
@@ -21,7 +21,11 @@ setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 d1<-read_csv("./results/data_long6.csv")%>%
   glimpse()
 
+# start_date
+sd<-20240901
 
+# end_date
+ed<-20241101
 
 # ---------------------------------------------------------
 # ONLINE: ANYONE WHO FISHES
@@ -38,11 +42,11 @@ monthly_fishing_any_summary <- d1 %>%
     # Calculate the last day of the month
     end_date_obj = ceiling_date(start_date_obj, unit = "month") - days(1)
   ) %>%
-  group_by(start_date_obj, end_date_obj) %>%
+  group_by(start_date_obj, end_date_obj,Mechanism) %>%
   summarize(
-    online_responses = n(),
+    responses_n = n(),
     # Use str_detect to find "Fishing or collecting food" anywhere in the comma-separated string
-    fishing_any_online = sum(
+    fishing_n = sum(
       str_detect(QImportant_Activities2, "Fishing or collecting food"), 
       na.rm = TRUE
     ),
@@ -54,8 +58,11 @@ monthly_fishing_any_summary <- d1 %>%
     end_date = format(end_date_obj, "%Y%m%d")
   ) %>%
   # 4. Clean up and calculate percentage
-  select(start_date, end_date, online_responses, fishing_any_online) %>%
-  mutate(pct_fishing_any = fishing_any_online / online_responses) %>%
+  select(start_date, end_date, responses_n, fishing_n,Mechanism) %>%
+  mutate(fishing_pct = fishing_n / responses_n,
+         fishing_type="any_activity",
+         mechanism=Mechanism) %>%
+  select(-Mechanism)%>%
   arrange(start_date)
 
 # View the monthly result
@@ -69,31 +76,33 @@ print(monthly_fishing_any_summary)
 # grand mean - all dates
 summary_all <- monthly_fishing_any_summary %>%
   summarize(
-    online_responses_all = sum(online_responses),
-    fishing_any_online_all = sum(fishing_any_online),
-    fishing_pct_all = fishing_any_online_all / online_responses_all
+    responses_n_all = sum(responses_n),
+    fishing_n_all = sum(fishing_n),
+    fishing_pct_all = fishing_n_all / responses_n_all
   )
 
 # grand mean - without sept and oct 2024
 summary_no_aw <- monthly_fishing_any_summary %>%
-  filter(start_date != "20240901" & start_date != "20241001") %>%
+  filter(start_date != sd & start_date != ed) %>%
   summarize(
-    online_responses_no_aw = sum(online_responses),
-    fishing_any_online_no_aw = sum(fishing_any_online),
-    fishing_pct_no_aw = fishing_any_online_no_aw / online_responses_no_aw
+    responses_n_no_aw = sum(responses_n),
+    fishing_n_no_aw = sum(fishing_n),
+    fishing_pct_no_aw = fishing_n_no_aw / responses_n_no_aw
   )
 
 # grand mean - only sept and oct 2024
 summary_only_aw <- monthly_fishing_any_summary %>%
-  filter(start_date == "20240901" | start_date == "20241001") %>%
+  filter(start_date == sd | start_date == ed) %>%
   summarize(
-    online_responses_only_aw = sum(online_responses),
-    fishing_any_online_only_aw = sum(fishing_any_online),
-    fishing_pct_only_aw = fishing_any_online_only_aw / online_responses_only_aw
+    responses_n_only_aw = sum(responses_n),
+    fishing_n_only_aw = sum(fishing_n),
+    fishing_pct_only_aw = fishing_n_only_aw / responses_n_only_aw
   )
 
 # Combine summaries into one wide table
 monthly_fishing_any_versions <- cbind(summary_all, summary_no_aw, summary_only_aw) %>%
+  mutate(mechanism="Online",
+         fishing_type="any_activity")%>%
   glimpse()
 
 # ---------------------------------------------------------
@@ -106,7 +115,7 @@ monthly_fishing_any_versions <- cbind(summary_all, summary_no_aw, summary_only_a
 # All surveys online: all vs fishing is most important activity  ------------------------
 
 # 1. Create the Monthly Summary Table
-monthly_fishing_summary <- d1 %>%
+monthly_fishing_summary_most <- d1 %>%
   filter(Mechanism=="Online")%>%
   # Ensure RecordedDate is valid
   filter(!is.na(RecordedDate)) %>%
@@ -116,10 +125,10 @@ monthly_fishing_summary <- d1 %>%
     # Calculate the last day of the month
     end_date_obj = ceiling_date(start_date_obj, unit = "month") - days(1)
   ) %>%
-  group_by(start_date_obj, end_date_obj) %>%
+  group_by(start_date_obj, end_date_obj,Mechanism) %>%
   summarize(
-    online_responses = n(),
-    fishing_most_online = sum(
+    responses_n = n(),
+    fishing_n = sum(
       Mechanism == "Online" & 
         QImportant_Activities_Most2 == "Fishing or collecting food", 
       na.rm = TRUE
@@ -132,59 +141,64 @@ monthly_fishing_summary <- d1 %>%
     end_date = format(end_date_obj, "%Y%m%d")
   ) %>%
   # 3. Clean up and organize
-  select(start_date, end_date, online_responses, fishing_most_online) %>%
-  mutate(pct_fishing_most=fishing_most_online/online_responses)%>%
+  select(start_date, end_date, responses_n, fishing_n,Mechanism) %>%
+  mutate(fishing_pct=fishing_n/responses_n,
+         fishing_type="most_important_activity",
+         mechanism="Online")%>%
+  select(-Mechanism)%>%
   arrange((start_date))
 
 # View the final result
-print(monthly_fishing_summary)
+print(monthly_fishing_summary_most )
 
 # grand mean -----
-sum(monthly_fishing_summary$fishing_most_online)/sum(monthly_fishing_summary$online_responses)
+sum(monthly_fishing_summary_most$fishing_n)/sum(monthly_fishing_summary_most $responses_n)
 
 
 
 # grand mean - all dates
-monthly_fishing_summary1<-monthly_fishing_summary%>%
-  # filter(start_date!=20240901&start_date!=20241001)%>%
+monthly_fishing_summary_most1<-monthly_fishing_summary_most %>%
+  # filter(start_date!=sd&start_date!=20241001)%>%
   summarize(
-    online_responses_all = sum(online_responses),
-    fishing_most_online_all = sum(fishing_most_online),
-    fishing_pct_all = fishing_most_online_all/online_responses_all
+    responses_n_all = sum(responses_n),
+    fishing_n_all = sum(fishing_n),
+    fishing_pct_all = fishing_n_all/responses_n_all
   )%>%
   glimpse()
 
 
 # grand mean - without sept and oct 2024
-monthly_fishing_summary2<-monthly_fishing_summary%>%
-  filter(start_date!=20240901&start_date!=20241001)%>%
+monthly_fishing_summary_most2<-monthly_fishing_summary_most %>%
+  filter(start_date!=sd &start_date!=20241001 &start_date!=ed)%>%
   summarize(
-    online_responses_no_aw = sum(online_responses),
-    fishing_most_online_no_aw = sum(fishing_most_online),
-    fishing_pct_no_aw = fishing_most_online_no_aw/online_responses_no_aw
+    responses_n_no_aw = sum(responses_n),
+    fishing_n_no_aw = sum(fishing_n),
+    fishing_pct_no_aw = fishing_n_no_aw/responses_n_no_aw
   )%>%
   glimpse()
 
 
 # grand mean - only sept and oct 2024
-monthly_fishing_summary3<-monthly_fishing_summary%>%
-  filter(start_date==20240901|start_date==20241001)%>%
+monthly_fishing_summary_most3<-monthly_fishing_summary_most %>%
+  filter(start_date==sd|start_date==20241001|start_date==ed)%>%
   summarize(
-    online_responses_only_aw = sum(online_responses),
-    fishing_most_online_only_aw = sum(fishing_most_online),
-    fishing_pct_only_aw = fishing_most_online_only_aw/online_responses_only_aw
+    responses_n_only_aw = sum(responses_n),
+    fishing_n_only_aw = sum(fishing_n),
+    fishing_pct_only_aw = fishing_n_only_aw/responses_n_only_aw
   )%>%
   glimpse()
 
 
 
 # review tables
-print(monthly_fishing_summary)
-print(monthly_fishing_summary1)
-print(monthly_fishing_summary2)
-print(monthly_fishing_summary3)
+print(monthly_fishing_summary_most )
+print(monthly_fishing_summary_most1)
+print(monthly_fishing_summary_most2)
+print(monthly_fishing_summary_most3)
 
-monthly_fishing_summary_versions<-cbind(monthly_fishing_summary1,monthly_fishing_summary2,monthly_fishing_summary3)%>%
+monthly_fishing_summary_most_versions<-cbind(monthly_fishing_summary_most1,monthly_fishing_summary_most2,monthly_fishing_summary_most3)%>%
+  mutate(mechanism="Online",
+         fishing_type="most_important_activity")%>%
   glimpse()
 
 
@@ -192,8 +206,9 @@ monthly_fishing_summary_versions<-cbind(monthly_fishing_summary1,monthly_fishing
 # ---------------------------------------------------------
 # Save 
 # ---------------------------------------------------------
-write_csv(monthly_fishing_any_summary, "./doc/activity_online_fishing_any_monthly.csv")
-write_csv(monthly_fishing_any_versions, "./doc/activity_online_fishing_any_summaries.csv")
+write_csv(monthly_fishing_any_summary, "./doc/activity_fishing_any_monthly_online.csv")
+write_csv(monthly_fishing_any_versions, "./doc/activity_fishing_any_summaries_online.csv")
 
-write_csv(monthly_fishing_summary,"./doc/activity_online_fishing_most_monthly.csv")
-write_csv(monthly_fishing_summary_versions,"./doc/activity_online_fishing_most_summaries.csv")
+write_csv(monthly_fishing_summary_most,"./doc/activity_fishing_most_monthly_online.csv")
+write_csv(monthly_fishing_summary_most_versions,"./doc/activity_fishing_most_summaries_online.csv")
+

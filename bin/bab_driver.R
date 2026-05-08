@@ -61,13 +61,34 @@ source("./bin/bab_clean_data_influencer_aw.R")
 # input:       ./results/data_long5.csv
 # output:      ./results/data_long6.csv
 
-# chart relative influence of influencer vs other online responses
-source("./bin/bab_fishing_most_table.R")
+# chart relative influence of influencer vs other online responses - all data
+source("./bin/bab_fishing_most_table_all.R")
+# input:       ./results/data_long6.csv
+# output:      ./doc/activity_fishing_any_monthly_all.csv
+#              ./doc/activity_fishing_any_summaries_all.csv
+#              ./doc/activity_fishing_most_monthly_all.csv
+#              ./doc/activity_fishing_most_summaries_all.csv
+
+# chart relative influence of influencer vs other online responses - online data only
+source("./bin/bab_fishing_most_table_online.R")
 # input:       ./results/data_long6.csv
 # output:      ./doc/activity_online_fishing_most_monthly.csv
 #              ./doc/activity_online_fishing_most_summaries.csv
 #              ./doc/activity_online_fishing_any_monthly.csv
 #              ./doc/activity_online_fishing_any_summaries.csv
+
+# graph effect of influencer on total data and data by month
+source("./bin/bab_fishing_influencer_graph.R")
+# input:       ./doc/activity_fishing_any_monthly_all.csv
+#              ./doc/activity_fishing_any_summaries_all.csv
+#              ./doc/activity_fishing_most_monthly_all.csv
+#              ./doc/activity_fishing_most_summaries_all.csv
+#              ./doc/activity_online_fishing_most_monthly.csv
+#              ./doc/activity_online_fishing_most_summaries.csv
+#              ./doc/activity_online_fishing_any_monthly.csv
+#              ./doc/activity_online_fishing_any_summaries.csv
+# output:      ./doc/influencer_pct.png
+#              ./doc/influencer_pctP_time.png
 
 
 
@@ -157,8 +178,8 @@ source("./bin/bab_respondents_by_zip.R")
 # -- activity questions --
 source("./bin/bab_qActivities.R")
 # input:       ./results/data_long6.csv
-# output:      ./results/.csv
-
+# output:      ./doc/QImportant_Activities_activity_w2.png
+#             ./doc/QImportant_Activities_Most_activit+y_w.png
 
 source("./bin/bab_q4_q5_race.R")
 # input:       ./results/data_long6.csv
