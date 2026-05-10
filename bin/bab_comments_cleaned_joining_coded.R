@@ -33,7 +33,7 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # demographics etc
-d0<-read_csv("./results/undergrad_projects_20260428c.csv")%>%
+d0<-read_csv("./results/data_long6.csv")%>%
   mutate(response_id=ResponseId)%>%
   glimpse()
 
@@ -83,10 +83,26 @@ final_df <- bind_rows(temp_list2, .id = "file_origin")%>%
   glimpse()
 final_df 
 
+# set NA to 0 for coding ------------------------------------
+names(final_df)
+
+# List of coded columns
+cols_to_fix <- c("barriers", "climate_change", "concerns", "joy", "management", "marine_life", 
+                 "mobility", "mpa_sanctuary", "ocean_values", "places", "relationship", 
+                 "social_change", "solutions", "use_activity", "wellbeing", 
+                 "appreciation_for_survey")
+
+final_df2 <- final_df %>%
+  mutate(across(all_of(cols_to_fix), ~replace_na(., 0)))%>%
+  mutate(comments_notes=notes)%>%
+  select(-notes)%>%
+  glimpse()
+
 # merge cleaned comments with full dataset
 d1<- d0%>%
-  right_join(final_df)%>%
+  right_join(final_df2)%>%
   glimpse()
+
 
 # save ---------------------
 write_csv(d1,"./results/q32_bab_comments_cleaned_demographics_not_all_versions.csv")

@@ -78,7 +78,9 @@ ggplot(d11, aes(x = fishing_type, y = percentage, fill = group)) +
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+
 ggsave("./doc/influencer_pct.png",  width = 10, height = 6, dpi = 300)
+
 
 
 # by time -----------------------
@@ -102,11 +104,18 @@ ggplot(d9,
     # subtitle = "Four distinct colors for each Mechanism/Type combination",
     x = "Month",
     y = "Percent",
-    color = "Sampling Mechanism & Activity Type"
+    # color = "Sampling Mechanism & Activity Type",
+    # title = "Fishing Percentage Trend by Joint Levels",
+    subtitle = "Four distinct colors for each Mechanism/Type combination",
+    x = "Month",
+    y = "Fishing Percentage (%)",
+    color = "Mechanism & Type"
   ) +
   theme(legend.position = "bottom",axis.text.x = element_text(angle = 90, hjust = 1))
 
 # Save 
+
 ggsave("./doc/influencer_pctP_time.png", width = 8, height = 5)
+# ggsave("./doc/influencer_pctP_time.png", width = 8, height = 5)
 
 

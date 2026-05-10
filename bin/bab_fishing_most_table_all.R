@@ -7,8 +7,11 @@
 # ----------------------------------------------------------
 # load libraries ######-------------------------------------
 library(tidyverse)
+<<<<<<< HEAD
 library(scales)
 library(colorspace)
+=======
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
 library(lubridate)
 
 # --------------------------------------------------------------------------
@@ -21,6 +24,7 @@ setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 d1<-read_csv("./results/data_long6.csv")%>%
   glimpse()
 
+<<<<<<< HEAD
 # start_date
 sd<-20240901
 
@@ -30,10 +34,27 @@ ed<-20241101
 
 # ---------------------------------------------------------
 # all: ANYONE WHO FISHES
+=======
+
+
+library(tidyverse)
+library(lubridate)
+
+# 1. Read file
+d1 <- read_csv("./results/data_long6.csv") %>%
+  glimpse()
+
+# ---------------------------------------------------------
+# All surveys online: Total vs. Anyone who fishes (in list)
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
 # ---------------------------------------------------------
 
 # 2. Create the Monthly Summary Table
 monthly_fishing_any_summary <- d1 %>%
+<<<<<<< HEAD
+=======
+  # filter(Mechanism == "Online") %>%
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
   # Ensure RecordedDate is valid
   filter(!is.na(RecordedDate)) %>%
   mutate(
@@ -44,20 +65,30 @@ monthly_fishing_any_summary <- d1 %>%
   ) %>%
   group_by(start_date_obj, end_date_obj) %>%
   summarize(
+<<<<<<< HEAD
     responses_n = n(),
     # Use str_detect to find "Fishing or collecting food" anywhere in the comma-separated string
     fishing_n = sum(
+=======
+    online_responses = n(),
+    # Use str_detect to find "Fishing or collecting food" anywhere in the comma-separated string
+    fishing_any_online = sum(
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
       str_detect(QImportant_Activities2, "Fishing or collecting food"), 
       na.rm = TRUE
     ),
     .groups = "drop"
   ) %>%
+<<<<<<< HEAD
   
+=======
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
   # 3. Reformat to YYYYMMDD
   mutate(
     start_date = format(start_date_obj, "%Y%m%d"),
     end_date = format(end_date_obj, "%Y%m%d")
   ) %>%
+<<<<<<< HEAD
   
   # 4. Clean up and calculate percentage
   select(start_date, end_date, responses_n, fishing_n) %>%
@@ -65,6 +96,11 @@ monthly_fishing_any_summary <- d1 %>%
          fishing_type="any_activity",
          mechanism="All") %>%
   # select(-Mechanism)%>%
+=======
+  # 4. Clean up and calculate percentage
+  select(start_date, end_date, online_responses, fishing_any_online) %>%
+  mutate(pct_fishing_any = fishing_any_online / online_responses) %>%
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
   arrange(start_date)
 
 # View the monthly result
@@ -78,31 +114,54 @@ print(monthly_fishing_any_summary)
 # grand mean - all dates
 summary_all <- monthly_fishing_any_summary %>%
   summarize(
+<<<<<<< HEAD
     responses_n_all = sum(responses_n),
     fishing_n_all = sum(fishing_n),
     fishing_pct_all = fishing_n_all / responses_n_all
+=======
+    online_responses_all = sum(online_responses),
+    fishing_any_online_all = sum(fishing_any_online),
+    fishing_pct_all = fishing_any_online_all / online_responses_all
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
   )
 
 # grand mean - without sept and oct 2024
 summary_no_aw <- monthly_fishing_any_summary %>%
+<<<<<<< HEAD
   filter(start_date != sd & start_date != "20241001"& start_date != ed) %>%
   summarize(
     responses_n_no_aw = sum(responses_n),
     fishing_n_no_aw = sum(fishing_n),
     fishing_pct_no_aw = fishing_n_no_aw / responses_n_no_aw
+=======
+  filter(start_date != "20240901" & start_date != "20241001") %>%
+  summarize(
+    online_responses_no_aw = sum(online_responses),
+    fishing_any_online_no_aw = sum(fishing_any_online),
+    fishing_pct_no_aw = fishing_any_online_no_aw / online_responses_no_aw
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
   )
 
 # grand mean - only sept and oct 2024
 summary_only_aw <- monthly_fishing_any_summary %>%
+<<<<<<< HEAD
   filter(start_date == sd | start_date == "20241001"| start_date == ed) %>%
   summarize(
     responses_n_only_aw = sum(responses_n),
     fishing_n_only_aw = sum(fishing_n),
     fishing_pct_only_aw = fishing_n_only_aw / responses_n_only_aw
+=======
+  filter(start_date == "20240901" | start_date == "20241001") %>%
+  summarize(
+    online_responses_only_aw = sum(online_responses),
+    fishing_any_online_only_aw = sum(fishing_any_online),
+    fishing_pct_only_aw = fishing_any_online_only_aw / online_responses_only_aw
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8
   )
 
 # Combine summaries into one wide table
 monthly_fishing_any_versions <- cbind(summary_all, summary_no_aw, summary_only_aw) %>%
+<<<<<<< HEAD
   mutate(mechanism="All",
          fishing_type="any_activity")%>%
   glimpse()
@@ -210,3 +269,12 @@ write_csv(monthly_fishing_any_versions, "./doc/activity_fishing_any_summaries_al
 write_csv(monthly_fishing_summary_most ,"./doc/activity_fishing_most_monthly_all.csv")
 write_csv(monthly_fishing_summary_most_versions,"./doc/activity_fishing_most_summaries_all.csv")
 
+=======
+  glimpse()
+
+# ---------------------------------------------------------
+# Save Outputs
+# ---------------------------------------------------------
+write_csv(monthly_fishing_any_summary, "./doc/activity_all_fishing_any_monthly.csv")
+write_csv(monthly_fishing_any_versions, "./doc/activity_all_fishing_any_summaries.csv")
+>>>>>>> 8cfa63dc6a29297b2a34aff2619e8a32b58ee0c8

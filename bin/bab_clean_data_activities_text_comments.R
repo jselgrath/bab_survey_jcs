@@ -23,7 +23,7 @@ d0<-read_csv("./results/q32_bab_comments_cleaned_demographics_not_all_versions.c
   select(ResponseId,comment_clean,use_activity)%>%
   glimpse()
 
-d1a<-read_csv("./results/data_long4.csv")%>%
+d1a<-read_csv("./results/data_long6.csv")%>%
   # select(ResponseId,QDesired_Time,QActual_Time,QImportant_Activities,QImportant_Activities_TEXT,QImportant_Activities_Most,QImportant_Activities_Most_TEXT,QTransport_Time,QActivity_Mentor,QActivity_Mentor_TEXT,
          # QActivity_Companion,QFishing,QFishing_Type,QDemographic_Home:QDemographic_Swimming,Version,Mechanism,EJ_Bin,Distance,Distance_Binned)%>%
   # mutate(QActual_Time4 = as.character(QActual_Time4), Q4 = as.character(Q4), Q5 = as.character(Q5)) %>%
@@ -193,4 +193,4 @@ glimpse(d2)
 unique(d2$QImportant_Activities)
 
 # save ------------
-write_csv(d2,"./results/data_long5.csv")
+write_csv(d2,"./results/data_long7.csv")

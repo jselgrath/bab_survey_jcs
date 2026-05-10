@@ -20,7 +20,7 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # read file
-d1<-read_csv("./results/data_long5.csv")%>%
+d1<-read_csv("./results/data_long7.csv")%>%
   
   # note if likely aw influencer respondent
   mutate(response_id=ResponseId)%>%
@@ -49,7 +49,7 @@ influencer_t<-tibble(table(d1$influencer_aw_b))
 influencer_t
 
 # save ---------------
-write_csv(d1,"./results/data_long6.csv")
+write_csv(d1,"./results/data_long8.csv")
 
 
 
