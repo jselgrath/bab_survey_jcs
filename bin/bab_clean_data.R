@@ -40,8 +40,15 @@ d1[2,]
 d4<-d1[3:nrow(d1),]
 glimpse(d4)  
 
-
+# remove people who took survey 2xby email
+d5 <- d4 %>%
+  # Convert emails to lowercase to ensure "User@me.com" matches "user@me.com"
+  mutate(Email = tolower(Email)) %>% 
+  # keeps only the first occurrence of each email
+  filter(!duplicated(Email) | is.na(Email))%>%
+  glimpse()
 
 # export formatted data --------------------------------
-write_csv(d4,"./results/data_long.csv")
+write_csv(d4,"./results/data_long_duplicate_emails.csv")
+write_csv(d5,"./results/data_long.csv")
 write_csv(d_questions,"./results/data_questions.csv")
