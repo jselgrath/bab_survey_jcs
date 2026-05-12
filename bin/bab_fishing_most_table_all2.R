@@ -32,19 +32,20 @@ ed<-20241101
 # all: ANYONE WHO FISHES
 # ---------------------------------------------------------
 
-# 2. Create the Monthly Summary Table
+# Create the Monthly Summary Table
 monthly_fishing_any_summary <- d1 %>%
-  # Ensure RecordedDate is valid
   filter(!is.na(RecordedDate)) %>%
   mutate(
-    # Get the first day of the month
+    
+    # first day of the month
     start_date_obj = floor_date(as_date(RecordedDate), unit = "month"),
-    # Calculate the last day of the month
+    # last day of the month
     end_date_obj = ceiling_date(start_date_obj, unit = "month") - days(1)
   ) %>%
   group_by(start_date_obj, end_date_obj) %>%
   summarize(
     responses_n = n(),
+    
     # Use str_detect to find "Fishing or collecting food" anywhere in the comma-separated string
     fishing_n = sum(
       str_detect(QImportant_Activities2, "Fishing or collecting food"), 
@@ -53,13 +54,13 @@ monthly_fishing_any_summary <- d1 %>%
     .groups = "drop"
   ) %>%
   
-  # 3. Reformat to YYYYMMDD
+  # Reformat to YYYYMMDD
   mutate(
     start_date = format(start_date_obj, "%Y%m%d"),
     end_date = format(end_date_obj, "%Y%m%d")
   ) %>%
   
-  # 4. Clean up and calculate percentage
+  # Clean and calculate percentage
   select(start_date, end_date, responses_n, fishing_n) %>%
   mutate(fishing_pct = fishing_n / responses_n,
          fishing_type="any_activity",
@@ -84,7 +85,7 @@ summary_all <- monthly_fishing_any_summary %>%
   )
 
 # grand mean - without sept and oct 2024
-summary_no_aw <- monthly_fishing_any_summary %>%
+summary_no_influencer <- monthly_fishing_any_summary %>%
   filter(start_date != sd & start_date != "20241001"& start_date != ed) %>%
   summarize(
     responses_n_no_aw = sum(responses_n),
@@ -199,7 +200,8 @@ monthly_fishing_summary_most_versions<-cbind(monthly_fishing_summary_most1,month
          fishing_type="most_important_activity")%>%
   glimpse()
 
-
+print(monthly_fishing_any_summary)
+print(monthly_fishing_any_versions)
 
 # ---------------------------------------------------------
 # Save 

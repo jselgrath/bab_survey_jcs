@@ -106,12 +106,13 @@ source("./bin/bab_clean_data_activities_text_comments.R")
 # output:      ./results/data_long7.csv
 
 # make column for influencer fishing responses
-source("./bin/bab_clean_data_influencer_aw.R")
+source("./bin/bab_clean_data_fishing_influencer.R")
 # input:       ./results/data_long7.csv
 # output:      ./results/data_long8.csv
+#              ./doc/fishing_influencer_summary.csv
 
 # chart relative influence of influencer vs other online responses - all data
-source("./bin/bab_fishing_most_table_all2.R")
+# source("./bin/bab_fishing_most_table_all2.R")
 # input:       ./results/data_long8.csv
 # output:      ./doc/activity_fishing_any_monthly_all.csv
 #              ./doc/activity_fishing_any_summaries_all.csv
@@ -119,6 +120,7 @@ source("./bin/bab_fishing_most_table_all2.R")
 #              ./doc/activity_fishing_most_summaries_all.csv
 
 # chart relative influence of influencer vs other online responses - online data only
+# possibly update with 
 source("./bin/bab_fishing_most_table_online.R")
 # input:       ./results/data_long8.csv
 # output:      ./doc/activity_online_fishing_most_monthly.csv
@@ -127,7 +129,7 @@ source("./bin/bab_fishing_most_table_online.R")
 #              ./doc/activity_online_fishing_any_summaries.csv
 
 # graph effect of influencer on total data and data by month
-source("./bin/bab_fishing_influencer_graph.R")
+# source("./bin/bab_fishing_influencer_graph.R")
 # input:       ./doc/activity_fishing_any_monthly_all.csv
 #              ./doc/activity_fishing_any_summaries_all.csv
 #              ./doc/activity_fishing_most_monthly_all.csv
@@ -139,9 +141,14 @@ source("./bin/bab_fishing_influencer_graph.R")
 # output:      ./doc/influencer_pct.png
 #              ./doc/influencer_pctP_time.png
 
+# graph effect of influencer on total data and data by month
+source("./bin/bab_fishing_influencer_graph2.R")
+# input:       ./results/data_long8.csv
+# output:      ./doc/fishing_influencer_time.png
 
 
-# source("bab_comments_cleaned_xlsx_to_csv.R") - good but overwrites files (there is a backup)
+
+# source("./bin/bab_comments_cleaned_xlsx_to_csv.R") - good but overwrites files (there is a backup)
 # input:   folder_path <- "./data/comments/"    .xlsx files
 # output:  folder_path <- "./data/comments/"    .csv files > have been manually cleaned - do not overwrite!    
 
@@ -193,17 +200,17 @@ source("./bin/bab_respondents_by_zip.R")
 
 # -- activity questions --
 source("./bin/bab_qActivities.R")
-# input:       ./results/data_long6.csv
+# input:       ./results/data_long8.csv
 # output:      ./doc/QImportant_Activities_activity_w2.png
-#             ./doc/QImportant_Activities_Most_activit+y_w.png
+#              ./doc/QImportant_Activities_Most_activit+y_w.png
 
 source("./bin/bab_q4_q5_race.R")
-# input:       ./results/data_long6.csv
+# input:       ./results/data_long8.csv
 # output:      
 
 # -- mpa questions --
 source("./bin/bab_q17_q18_mpa_q29_q30.R")
-# input:       ./results/data_long5.csv
+# input:       ./results/data_long8.csv
 # output:      ./doc/q17_mpa_famil.png
 #              ./doc/q18_nms_famil.png
 #              ./doc/q29_mpa_purpose.png

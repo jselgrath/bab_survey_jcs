@@ -10,6 +10,7 @@ library(tidyverse)
 library(scales)
 library(colorspace)
 library(ggpattern)
+library(stringr)
 
 
 # note in cases where write in text fits two categories, then it is assigned the first one that matches
@@ -21,37 +22,67 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 source("./bin/deets.R")
 
-d0<-read_csv("./results/data_long6.csv")%>%
+d00<-read_csv("./doc/fishing_influencer_summary.csv")%>%
+  glimpse()
+d00
+
+
+d0<-read_csv("./results/data_long8.csv")%>%
   mutate(response_id=ResponseId)%>%
-  # select(response_id,QDesired_Time,QActual_Time,QImportant_Activities,QImportant_Activities_TEXT,QImportant_Activities_Most,QImportant_Activities_Most_TEXT,QTransport_Time,QActivity_Mentor,QActivity_Mentor_TEXT,
+  #fix swimming 
+  mutate(
+    QImportant_Activities2 = str_replace_all(
+      QImportant_Activities2, 
+      "Swimming or bodysurfing", 
+      "Swimming/Bodysurfing"))%>%
+  # select(response_id,QDesired_Time,QActual_Time,QImportant_Activities2,QImportant_Activities2_TEXT,QImportant_Activities2_Most,QImportant_Activities_Most_TEXT,QTransport_Time,QActivity_Mentor,QActivity_Mentor_TEXT,
   # QActivity_Companion,QFishing,QFishing_Type,QDemographic_Home:QDemographic_Swimming,Version,Mechanism,EJ_Bin,Distance,Distance_Binned)%>%
   # mutate(QActual_Time4 = as.character(QActual_Time4), QImportant_Activities = as.character(QImportant_Activities), QImportant_Activities_Most = as.character(QImportant_Activities_Most)) %>%
   # mutate(QActual_Time=if_else(QActual_Time=="Less than once a year (i.e., rarely or never)","Less than once a year",QActual_Time))%>%
   glimpse()
 names(d0)
 
+d0
+
 # dealing with influencer bias ---------------
+# weighting people who said fishing was an important activity during the two month influencer period
+# not enough variation to use fishing as most important activity
+# ---------------------------------------------------
 
-# method 1: weight influencer samples: dataset = most important activity ------------------------------------
-# natural rate/influencer rate (see calcs in bab_fishing_most_table)
-# Natural Rate (Rn): 0.04903678
-# Influencer-Period Rate (Ri): 0.5882353
-# weight<-0.04903678 / 0.5882353 
-# 0.08336
+# natural rate of fishing as most important activity
+# Removed Influencer Period - Any Fishing - Online
+nrm<-d00$percent[10]/100 #5.9
+nrm
+
+# influencer rate of fishing as most important activity
+# Influencer Period Only - Any Fishing - Online
+nim<-d00$percent[6]/100 #82.7
+nim
+
+# natural rate of fishing as any important activity
+# Removed Influencer Period - Any Fishing - Online 
+nra<-d00$percent[9]/100 #17.3
+nra
+
+# influencer rate of fishing as any important activity
+# Influencer Period Only - Any Fishing - Online
+nia<-d00$percent[5]/100 #100
+nia
 
 
-# method 2: weight influencer samples: dataset = most important activity ------------------------------------
-# ratio for most anyone who fishes
-target_ratio_any <- 0.1374781 / 0.7145969
+# weight influencer samples: dataset = most important activity ------------------------------------
 
-# ratio for people who stated fishing is most important activity
-target_ratio_most <- 0.04903678 / 0.5882353
+# ratio for most anyone who fishes = no influencer (online)/influencer only (online)
+target_ratio_any <- nra / nia
+
+# ratio for people who stated fishing is most important activity = no influencer/influencer
+target_ratio_most <- nrm / nim
 
 # calculate weights for all respondents vs fishing as the most important activity
 d1<-d0%>%
   mutate(
     weight_influencer_most = if_else(
-      influencer_aw_b == 1, 
+      influencer_any_b == 1, 
       target_ratio_most, 
       1.0, 
       missing = 1.0
@@ -59,7 +90,7 @@ d1<-d0%>%
   
 # calculate weights for all respondents vs fishing any important activity
 weight_influencer_all = if_else(
-  influencer_aw_b == 1, 
+  influencer_any_b == 1, 
   target_ratio_any, 
   1.0, 
   missing = 1.0
@@ -68,9 +99,9 @@ weight_influencer_all = if_else(
   glimpse()
   
 
-# method 2: remove influencer samples -------------------
+# remove influencer samples -------------------
 d2<-d0%>%
-  filter(influencer_aw_b!=1)%>%
+  filter(influencer_any_b!=1)%>%
   glimpse()
 
 
@@ -81,7 +112,7 @@ d2<-d0%>%
 # VERSION 1: ALL DATA --------------------------------
 # -- organize --
 counts_activity <- d0 %>%
-  filter(!is.na(QImportant_Activities_Most2))%>% # most 2 tries to assign Another Activity to categories
+  filter(!is.na(QImportant_Activities_Most2))%>% # most 2 assigns Another Activity to categories
   filter(QImportant_Activities_Most2!="Choose not to answer")%>%
   mutate(
     QImportant_Activities_Most2 = fct_relevel(QImportant_Activities_Most2,
@@ -91,75 +122,8 @@ counts_activity <- d0 %>%
   summarise(n = n_distinct(response_id), .groups = "drop")
 
 
-
-# ALL DATA A: NOT ACCOUNTING FOR INFLUENCER ---------------
-# props_activity <- counts_activity %>%
-#   mutate(pct = n / sum(n)) %>%
-#   ungroup()
-# 
-# 
-# # -- compare expected frequencies to observed values --
-# chi1 <- chisq.test(props_activity$n) # default = equal proportions
-# chi_stat1 <- unname(chi1$statistic)
-# chi_df1   <- unname(chi1$parameter)
-# chi_p1   <- chi1$p.value
-# fmt_p1 <- ifelse(chi_p1 < .001, "< 0.001", scales::number(chi_p, accuracy = 0.001)) #  formatted p
-# 
-# resids1 <- chi1$stdres
-# data.frame(QImportant_Activities_Most2 = props_activity$QImportant_Activities_Most2, Residual = resids1)
-# 
-# 
-# 
-# # reorder based on percentage-------------
-# props_activity <- props_activity %>%
-#   mutate(
-#     # Reorder Activity by pct (descending)
-#     QImportant_Activities_Most2 = fct_reorder(QImportant_Activities_Most2, pct, .desc = TRUE),
-#     
-#     # Optional: If you want "Another activity" to always be last regardless of its %
-#     QImportant_Activities_Most2 = fct_relevel(QImportant_Activities_Most2, "Another activity", after = Inf)
-#   )
-# 
-
-# -- graph --
-# ggplot(props_activity, aes(x = QImportant_Activities_Most2, y = pct, fill = QImportant_Activities_Most2)) +
-#   geom_col(show.legend = FALSE) +  # hide redundant legend (optional)
-#   geom_text(aes(label = percent(pct, accuracy = 0.1)),
-#             vjust = -0.4, size = 3.8) +
-#   ylim(0,.35)+
-#   scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, max(props_activity$pct) * 1.15)) +
-#   labs(
-#     x = "Most Important Activity",
-#     y = "Percent of Respondents",
-#     # title = "Distribution of MPA familiarity",
-#     subtitle = paste0("\u03C7\u00B2(", #Chi-squared goodness-of-fit: \u03C7\u00B2(
-#                       chi_df1, ") = ", round(chi_stat1, 2), ", p ", fmt_p1)) +
-#   theme_minimal(base_size = 18) +
-#   theme(
-#     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-#     strip.text = element_text(face = "bold"),
-#     axis.title.x = element_text(margin = margin(t = 10)),  # top margin (move x-label down)
-#     axis.title.y = element_text(margin = margin(r = 10)),   # right margin (move y-label left)
-#     plot.subtitle = element_text(
-#       color = "grey40",    
-#       hjust = 1 )         
-#   )+
-#   scale_fill_discrete_sequential(palette = "Teal")
-
-
-# ggsave("./doc/QImportant_Activities_Most_activity_biased.png",   width = 12, height = 10,     # size in inches
-#        units = "in",              # "in", "cm", or "mm"
-#        dpi = 300,                 # resolution (300+ for publication quality)
-#        bg = "white"               # background color (use "transparent" if needed)
-# )
-
-
-
-
-
-
 # ----------------------------------------------------------------
-# # ALL DATA B: ACCOUNTING FOR INFLUENCER --------------- --------------------------------------
+# ACCOUNTING FOR INFLUENCER --------------- --------------------------------------
 
 # -- organize and reorder --
 props_activity_weight <- d1 %>%
@@ -169,9 +133,9 @@ props_activity_weight <- d1 %>%
   summarise(n_weighted = sum(weight_influencer_most, na.rm = TRUE), .groups = "drop") %>%
   
   mutate(pct = n_weighted / sum(n_weighted)) %>%
-  # NEW: Reorder by percentage
+  # Reorder by percentage
   mutate(QImportant_Activities_Most2 = fct_reorder(QImportant_Activities_Most2, pct, .desc = TRUE)) %>%
-  # NEW: Keep "Another activity" at the end if it exists
+  # Keep "Another activity" at the end
   mutate(QImportant_Activities_Most2 = fct_relevel(QImportant_Activities_Most2, "Another activity", after = Inf))
 
 
@@ -192,42 +156,42 @@ weighted_residuals <- data.frame(
 
 
 
-# -- graph --
+# # -- graph --
 # for labeling
 props_activity_weight$consumptive_b<-"Non-consumptive"
 props_activity_weight$consumptive_b[props_activity_weight$QImportant_Activities_Most2=="Fishing or collecting food"]<-"Consumptive"
-# props_activity_weight$consumptive_b[props_activity_weight$QImportant_Activities_Most2=="Another Activity"]<-"Consumptive"
+props_activity_weight$consumptive_b[props_activity_weight$QImportant_Activities_Most2=="Another Activity"]<-"Consumptive"
 
-
-ggplot(props_activity_weight, aes(x = QImportant_Activities_Most2, y = pct, fill = consumptive_b)) +
-  # 1. Enable the legend here
-  geom_col(show.legend = TRUE) + 
-  geom_text(aes(label = scales::percent(pct, accuracy = 0.1)),
-            vjust = -0.4, size = 3.3) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
-                     limits = c(0, max(props_activity_weight$pct) * 1.2)) +
-  labs(
-    x = "Most Important Activity",
-    y = "Percent of Respondents",
-    subtitle = paste0("\u03C7\u00B2(", chi_df1_w, ") = ", round(chi_stat1_w, 2), ", p ", fmt_p1_w)
-  ) +
-  theme_minimal(base_size = 18) +
-  scale_fill_manual(
-    values = c("Non-consumptive" = "#206161", "Consumptive" = "#d43d51"), 
-    labels = c("Non-Consumptive" = "Non-Consumptive", "Consumptive" = "Consumptive"),
-    name = "Activity Type"
-  ) +
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-    legend.position = "right",
-    # Shrink the legend text and title
-    legend.text = element_text(size = 12), 
-    legend.title = element_text(size = 12, face = "bold"),
-    # Keep your subtitle styling
-    plot.subtitle = element_text(color = "grey40", hjust = 1)
-  )
-
-  
+# 
+# ggplot(props_activity_weight, aes(x = QImportant_Activities_Most2, y = pct, fill = consumptive_b)) +
+#   # 1. Enable the legend here
+#   geom_col(show.legend = TRUE) + 
+#   geom_text(aes(label = scales::percent(pct, accuracy = 0.1)),
+#             vjust = -0.4, size = 3.3) +
+#   scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
+#                      limits = c(0, max(props_activity_weight$pct) * 1.2)) +
+#   labs(
+#     x = "Most Important Activity",
+#     y = "Percent of Respondents",
+#     subtitle = paste0("\u03C7\u00B2(", chi_df1_w, ") = ", round(chi_stat1_w, 2), ", p ", fmt_p1_w)
+#   ) +
+#   theme_minimal(base_size = 18) +
+#   scale_fill_manual(
+#     values = c("Non-consumptive" = "#206161", "Consumptive" = "#d43d51"), 
+#     labels = c("Non-Consumptive" = "Non-Consumptive", "Consumptive" = "Consumptive"),
+#     name = "Activity Type"
+#   ) +
+#   theme(
+#     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+#     legend.position = "right",
+#     # Shrink the legend text and title
+#     legend.text = element_text(size = 12), 
+#     legend.title = element_text(size = 12, face = "bold"),
+#     # Keep your subtitle styling
+#     plot.subtitle = element_text(color = "grey40", hjust = 1)
+#   )
+# 
+#   
 # --------------------------------
 # 1. Create the pattern vector for this specific dataframe
 all_acts_w <- unique(props_activity_weight$QImportant_Activities_Most2)
@@ -298,27 +262,27 @@ ggsave("./doc/QImportant_Activities_Most_activity_w.png",   width = 12, height =
 # QImportant_Activities --------------------
 # Explode multi-select activity (QImportant_Activities) so multi-activity respondents count in each chosen activity ----
 d4 <- d1 %>%
-  mutate(QImportant_Activities = as.character(QImportant_Activities)) %>%
-  tidyr::separate_rows(QImportant_Activities, sep = ",") %>%
-  mutate(QImportant_Activities = stringr::str_trim(QImportant_Activities)) %>%
+  mutate(QImportant_Activities2 = as.character(QImportant_Activities2)) %>%
+  tidyr::separate_rows(QImportant_Activities2, sep = ",") %>%
+  mutate(QImportant_Activities2 = stringr::str_trim(QImportant_Activities2)) %>%
   filter(
-    !is.na(QImportant_Activities), QImportant_Activities != "",
-    !QImportant_Activities %in% c("Choose not to answer") 
+    !is.na(QImportant_Activities2), QImportant_Activities2 != "",
+    !QImportant_Activities2 %in% c("Choose not to answer") 
   ) %>%
   # --- ADD IS_CONSUMPTIVE LOGIC HERE ---
   mutate(
     is_consumptive = if_else(
-      QImportant_Activities == "Fishing or collecting food" | 
+      QImportant_Activities2 == "Fishing or collecting food" | 
         str_detect(str_to_lower(QImportant_Activities_TEXT), "collect shell|glass|rock hunt"), 
       1, 0, missing = 0
     )
   ) %>%
   # -------------------------------------
 mutate(
-  QImportant_Activities = fct_relevel(QImportant_Activities,
-                                      sort(unique(QImportant_Activities[QImportant_Activities != "Another activity"])),
+  QImportant_Activities2 = fct_relevel(QImportant_Activities2,
+                                      sort(unique(QImportant_Activities2[QImportant_Activities2 != "Another activity"])),
                                       "Another activity")) %>%
-  distinct(response_id, QImportant_Activities, .keep_all = TRUE) %>% # Keep the new flag
+  distinct(response_id, QImportant_Activities2, .keep_all = TRUE) %>% # Keep the new flag
   
   # calculate categories
   # add columns for sub-categories ----------
@@ -326,7 +290,7 @@ mutate(
 mutate(
 is_spiritual_cultural = if_else(
   QImportant_Activities_Cleaned == "Cultural or religious ceremonies" | 
-    str_detect(QImportant_Activities, fixed("Cultural or religious ceremonies")) |
+    str_detect(QImportant_Activities2, fixed("Cultural or religious ceremonies")) |
     str_detect(str_to_lower(QImportant_Activities_TEXT), "spirit|religious|meditation|drum circle|singing|yoga|lakota|prayer|offering|ancestor|dance|ceremon|indigenous|native"),
   "Spiritual/Cultural Use", "Non-spiritual use", missing = "Non-spiritual use"
 ),
@@ -348,7 +312,7 @@ is_dog_activity = if_else(
 # D. CIVIC ENGAGEMENT FLAG
 is_civic_engagement = if_else(
   QImportant_Activities_Cleaned == "Volunteering" |
-    str_detect(QImportant_Activities, fixed("Volunteering")) |
+    str_detect(QImportant_Activities2, fixed("Volunteering")) |
     str_detect(str_to_lower(QImportant_Activities_TEXT), "activism|restoration|clean up|stewardship|land back"),
   "Civic/Stewardship use", "Non-civic use", missing = "Non-civic use"
 ),
@@ -356,88 +320,21 @@ is_civic_engagement = if_else(
 # E. CONSUMPTIVE FLAG
 is_consumptive = if_else(
   QImportant_Activities_Cleaned == "Fishing or collecting food" | 
-    str_detect(QImportant_Activities, fixed("Fishing or collecting food")) |
+    str_detect(QImportant_Activities2, fixed("Fishing or collecting food")) |
     str_detect(str_to_lower(QImportant_Activities_TEXT), "collect shell|glass|rock hunt|agetes|渔|钓"), 
   "Consumptive", "Non-consumptive", missing = "Non-consumptive")
     ) %>%
   glimpse()
 glimpse(d4)
 
-# -- Activity graphs - Q Important_Activities - not accounting for influencer ---------------------------
-
-# Organize and calculate raw counts (non-weighted)
-# props_activity_raw <- d4 %>%
-#   filter(!is.na(QImportant_Activities)) %>%
-#   filter(QImportant_Activities != "Choose not to answer") %>%
-#   group_by(QImportant_Activities) %>%
-#   summarise(
-#     # Use standard n_distinct to count each person once per activity
-#     n_raw = n_distinct(response_id),
-#     is_consumptive = max(is_consumptive), 
-#     .groups = "drop"
-#   ) %>%
-#   mutate(
-#     # Percentages based on raw total mentions
-#     pct = n_raw / sum(n_raw),
-#     # Reorder by raw frequency
-#     QImportant_Activities = fct_reorder(QImportant_Activities, pct, .desc = TRUE),
-#     QImportant_Activities = fct_relevel(QImportant_Activities, "Another activity", after = Inf),
-#     is_consumptive = as.factor(is_consumptive)
-#   )
-
-# # Chi-Squared Test (using raw counts )
-# chi_raw <- chisq.test(props_activity_raw$n_raw)
-# chi_stat_raw <- unname(chi_raw$statistic)
-# chi_df_raw   <- unname(chi_raw$parameter)
-# chi_p_raw    <- chi_raw$p.value
-# fmt_p_raw    <- ifelse(chi_p_raw < .001, "< 0.001", 
-#                        scales::number(chi_p_raw, accuracy = 0.001))
-# 
-# # Graph -----------------------
-# ggplot(props_activity_raw, 
-#        aes(x = QImportant_Activities, y = pct, fill = is_consumptive)) +
-#   geom_col(show.legend = TRUE) + 
-#   geom_text(aes(label = scales::percent(pct, accuracy = 0.1)),
-#             vjust = -0.4, size = 3.3) +
-#   scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
-#                      limits = c(0, max(props_activity_raw$pct) * 1.15)) +
-#   scale_fill_manual(
-#     values = c("Non-consumptive" = "#7fb8b4", "Consumptive" = "#d43d51"), 
-#     labels = c("Non-consumptive" = "Non-consumptive", "Consumptive" = "Consumptive"),
-#     name = "Activity Type"
-#   ) +
-#   labs(
-#     x = "Activities",
-#     y = "Percent of All Activities",
-#     subtitle = paste0("\u03C7\u00B2(", chi_df_raw, ") = ", 
-#                       round(chi_stat_raw, 2), ", p ", fmt_p_raw)
-#   ) +
-#   theme_minimal(base_size = 18) +
-#   theme(
-#     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-#     legend.position = "right",
-#     legend.text = element_text(size = 12), 
-#     legend.title = element_text(size = 12, face = "bold"),
-#     plot.subtitle = element_text(color = "grey40", hjust = 1)
-#   )
-# 
-# ggsave("./doc/QImportant_Activities_activity_all.png",  width = 12, height = 10,     # size in inches
-#        units = "in",              # "in", "cm", or "mm"
-#        dpi = 300,                 # resolution (300+ for publication quality)
-#        bg = "white"               # background color (use "transparent" if needed)
-# )
-
-
-
-
 # ------------------------------------------------------------------------
 # --- Weighted -----------------------------------------------------------
 
 # 1. Organize and calculate weighted counts for all activities
-props_activity_QImportant_Activities <- d4 %>%
-  filter(!is.na(QImportant_Activities)) %>%
-  filter(QImportant_Activities != "Choose not to answer") %>%
-  group_by(QImportant_Activities) %>%
+props_activity_QImportant_Activities2 <- d4 %>%
+  filter(!is.na(QImportant_Activities2)) %>%
+  filter(QImportant_Activities2 != "Choose not to answer") %>%
+  group_by(QImportant_Activities2) %>%
   summarise(
     # Sum weights instead of n() to maintain bias correction
     n_weighted = sum(weight_influencer_all, na.rm = TRUE),
@@ -448,64 +345,26 @@ props_activity_QImportant_Activities <- d4 %>%
   mutate(
     pct = n_weighted / sum(n_weighted),
     # Reorder Activity by percentage (highest to lowest)
-    QImportant_Activities = fct_reorder(QImportant_Activities, pct, .desc = TRUE),
+    QImportant_Activities2 = fct_reorder(QImportant_Activities2, pct, .desc = TRUE),
     # Move "Another activity" to the end if present
-    QImportant_Activities = fct_relevel(QImportant_Activities, "Another activity", after = Inf),
+    QImportant_Activities2 = fct_relevel(QImportant_Activities2, "Another activity", after = Inf),
     # Factor for discrete coloring
     is_consumptive = as.factor(is_consumptive)
   )
 
 # 2. Chi-Squared Test (using weighted counts)
-chi1_QImportant_Activities <- chisq.test(props_activity_QImportant_Activities$n_weighted)
-chi_stat1_QImportant_Activities <- unname(chi1_QImportant_Activities$statistic)
-chi_df1_QImportant_Activities   <- unname(chi1_QImportant_Activities$parameter)
-chi_p1_QImportant_Activities    <- chi1_QImportant_Activities$p.value
-fmt_p1_QImportant_Activities    <- ifelse(chi_p1_QImportant_Activities < .001, "< 0.001", 
-                                          scales::number(chi_p1_QImportant_Activities, accuracy = 0.001))
-
-# Graph -------------
-# ggplot(props_activity_QImportant_Activities, 
-#        aes(x = QImportant_Activities, y = pct, fill = is_consumptive)) +
-#   geom_col(show.legend = TRUE) + 
-#   geom_text(aes(label = scales::percent(pct, accuracy = 0.1)),
-#             vjust = -0.4, size = 3.3) +
-#   scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
-#                      limits = c(0, max(props_activity_QImportant_Activities$pct) * 1.15)) +
-#   scale_fill_manual(
-#     values = c("Non-consumptive" = "#7fb8b4", "Consumptive" = "#d43d51"), 
-#     labels = c("Non-consumptive" = "Non-consumptive", "Consumptive" = "Consumptive"),
-#     name = "Activity Type"
-#   ) +
-#   labs(
-#     x = "Activities",
-#     y = "Percent of All Activities",
-#     subtitle = paste0("\u03C7\u00B2(", chi_df1_QImportant_Activities, ") = ", 
-#                       round(chi_stat1_QImportant_Activities, 2), ", p ", fmt_p1_QImportant_Activities)
-#   ) +
-#   theme_minimal(base_size = 18) +
-#   theme(
-#     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-#     legend.position = "right",
-#     legend.text = element_text(size = 12), 
-#     legend.title = element_text(size = 12, face = "bold"),
-#     plot.subtitle = element_text(color = "grey40", hjust = 1)
-#   )
-# 
-
-
-# Save
-# ggsave("./doc/QImportant_Activities_activity_w.png",  width = 12, height = 10,     # size in inches
-#        units = "in",              # "in", "cm", or "mm"
-#        dpi = 300,                 # resolution (300+ for publication quality)
-#        bg = "white"               # background color (use "transparent" if needed)
-# )
-
+chi1_QImportant_Activities2 <- chisq.test(props_activity_QImportant_Activities2$n_weighted)
+chi_stat1_QImportant_Activities2 <- unname(chi1_QImportant_Activities2$statistic)
+chi_df1_QImportant_Activities2   <- unname(chi1_QImportant_Activities2$parameter)
+chi_p1_QImportant_Activities2    <- chi1_QImportant_Activities2$p.value
+fmt_p1_QImportant_Activities2    <- ifelse(chi_p1_QImportant_Activities2 < .001, "< 0.001", 
+                                          scales::number(chi_p1_QImportant_Activities2, accuracy = 0.001))
 
 # ----------------------
 # calc values for striped "Another activity" -------------
 
 # unique activities 
-all_activities <- unique(props_activity_QImportant_Activities$QImportant_Activities)
+all_activities <- unique(props_activity_QImportant_Activities2$QImportant_Activities2)
 
 # vector where everything is "none"
 pattern_values <- setNames(rep("none", length(all_activities)), all_activities)
@@ -516,13 +375,13 @@ pattern_values["Another activity"] <- "stripe"
 
 
 # check --------------
-"Another activity" %in% props_activity_QImportant_Activities$QImportant_Activities
+"Another activity" %in% props_activity_QImportant_Activities2$QImportant_Activities2
   
 # graph ----------------
-ggplot(props_activity_QImportant_Activities, 
-       aes(x = QImportant_Activities, y = pct, 
+ggplot(props_activity_QImportant_Activities2, 
+       aes(x = QImportant_Activities2, y = pct, 
            fill = is_consumptive,
-           pattern = QImportant_Activities)) + # pattern allows for stripes
+           pattern = QImportant_Activities2)) + # pattern allows for stripes
   
   geom_col_pattern(
     show.legend = TRUE,
@@ -550,13 +409,13 @@ ggplot(props_activity_QImportant_Activities,
             vjust = -0.4, size = 3.3) +
   
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
-                     limits = c(0, max(props_activity_QImportant_Activities$pct) * 1.15)) +
+                     limits = c(0, max(props_activity_QImportant_Activities2$pct) * 1.15)) +
   
   labs(
     x = "Activity",
-    y = "Percent of All Activities",
-    subtitle = paste0("\u03C7\u00B2(", chi_df1_QImportant_Activities, ") = ", 
-                      round(chi_stat1_QImportant_Activities, 2), ", p ", fmt_p1_QImportant_Activities)
+    y = "Percent of Activities",
+    subtitle = paste0("\u03C7\u00B2(", chi_df1_QImportant_Activities2, ") = ", 
+                      round(chi_stat1_QImportant_Activities2, 2), ", p ", fmt_p1_QImportant_Activities2)
   ) +
   theme_minimal(base_size = 18) +
   theme(
@@ -567,7 +426,7 @@ ggplot(props_activity_QImportant_Activities,
     plot.subtitle = element_text(color = "grey40", hjust = 1)
   )
 
-ggsave("./doc/QImportant_Activities_activity_w2.png",  width = 12, height = 10,     # size in inches
+ggsave("./doc/QImportant_Activities2_activity_w2.png",  width = 12, height = 10,     # size in inches
        units = "in",              # "in", "cm", or "mm"
        dpi = 300,                 # resolution (300+ for publication quality)
        bg = "white"               # background color (use "transparent" if needed)
