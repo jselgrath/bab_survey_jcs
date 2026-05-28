@@ -45,13 +45,12 @@ library(colorspace)
 #   }
 # }
 
-
 # load data ######-----------------------------------------------------------
 rm(list = ls(all = TRUE))
 # setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 setwd("G:/My Drive/research/r_projects/bab_survey_jcs")
 
-d1<-read_csv("./results/data_long5.csv")%>%
+d1<-read_csv("./results/data_long8.csv")%>% # was data long 5
   filter(YEAR==2025)%>%
   glimpse()
 

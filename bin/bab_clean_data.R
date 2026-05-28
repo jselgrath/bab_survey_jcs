@@ -1,6 +1,7 @@
 # California Ocean Access: Benefits and Barriers (bab)
-# Jennifer Selgrath - base code from Tim Frawley
+# Jennifer Selgrath
 # California Marine Sanctuary Foundation/ CINMS
+#-------------------------------------
 
 # goal: organize and clean data from qualtrics
 
@@ -21,7 +22,14 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 d1<-read_csv("./data/Merged_Cleaned_QC_Final_5.8.2026.csv")%>% #Merged_Cleaned_QC_Final_v1.csv
+  mutate(QActual_Time=if_else(QActual_Time=="Less than once a year (i.e., rarely or never)","Less than once a year",QActual_Time))%>%
+  mutate(response_id=ResponseId)%>%
   glimpse()
+
+# fix zips that are typos
+unique(d1$QDemographic_PrimaryZip)
+d1$QDemographic_PrimaryZip[d1$QDemographic_PrimaryZip=="75012"]<-"95012"
+d1$QDemographic_PrimaryZip[d1$QDemographic_PrimaryZip=="82691"]<-"82691"
 
 d1
 colnames(d1)

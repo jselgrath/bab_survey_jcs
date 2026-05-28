@@ -27,7 +27,7 @@ d00<-read_csv("./doc/fishing_influencer_summary.csv")%>%
 d00
 
 
-d0<-read_csv("./results/data_long8.csv")%>%
+d0<-read_csv("./results/data_long9.csv")%>%
   mutate(response_id=ResponseId)%>%
   #fix swimming 
   mutate(
@@ -43,6 +43,30 @@ d0<-read_csv("./results/data_long8.csv")%>%
 names(d0)
 
 d0
+
+# labels for plotting -----------------------
+unique(d0$QImportant_Activities_Most2)
+
+activity_labels <- c(
+  "Fishing or collecting food"                        = "Fishing/Collecting Food",
+  "Group/Family gatherings or activities"             = "Family/Group Activities",
+  "Meditation/Reading/Relaxing/Art"                   = "Meditation/Relaxing/Art",
+  "Swimming/Bodysurfing"                              = "Swimming/Bodysurfing",
+  "Festivals"                                         = "Festivals",
+  "Bicycling/Roller skating/Skateboarding"            = "Cycling/Skating",
+  "Paid work"                                         = "Paid Work",
+  "Beach games/Sports/Yoga"                           = "Beach Games/Sports/Yoga",
+  "Walking/Running/Hiking"                            = "Walking/Running/Hiking",
+  "Enjoying views/sunsets"                            = "Enjoying Views/Sunsets",
+  "Surfing"                                           = "Surfing",
+  "Cultural or religious ceremonies"                  = "Cultural/Religious Ceremonies",
+  "Nature Observing/Photographing/Education/Research" = "Nature Observation",
+  "Paddleboarding/Kiteboarding/Kayaking/Canoeing"     = "Paddle/Kayak/Canoe",
+  "Snorkeling/Scuba Diving"                           = "Snorkeling/Scuba",
+  "Volunteering"                                      = "Volunteering",
+  "Sailing/Boating"                                   = "Sailing/Boating",
+  "Another activity"                                  = "Another Activity"
+)
 
 # dealing with influencer bias ---------------
 # weighting people who said fishing was an important activity during the two month influencer period
@@ -162,36 +186,8 @@ props_activity_weight$consumptive_b<-"Non-consumptive"
 props_activity_weight$consumptive_b[props_activity_weight$QImportant_Activities_Most2=="Fishing or collecting food"]<-"Consumptive"
 props_activity_weight$consumptive_b[props_activity_weight$QImportant_Activities_Most2=="Another Activity"]<-"Consumptive"
 
-# 
-# ggplot(props_activity_weight, aes(x = QImportant_Activities_Most2, y = pct, fill = consumptive_b)) +
-#   # 1. Enable the legend here
-#   geom_col(show.legend = TRUE) + 
-#   geom_text(aes(label = scales::percent(pct, accuracy = 0.1)),
-#             vjust = -0.4, size = 3.3) +
-#   scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
-#                      limits = c(0, max(props_activity_weight$pct) * 1.2)) +
-#   labs(
-#     x = "Most Important Activity",
-#     y = "Percent of Respondents",
-#     subtitle = paste0("\u03C7\u00B2(", chi_df1_w, ") = ", round(chi_stat1_w, 2), ", p ", fmt_p1_w)
-#   ) +
-#   theme_minimal(base_size = 18) +
-#   scale_fill_manual(
-#     values = c("Non-consumptive" = "#206161", "Consumptive" = "#d43d51"), 
-#     labels = c("Non-Consumptive" = "Non-Consumptive", "Consumptive" = "Consumptive"),
-#     name = "Activity Type"
-#   ) +
-#   theme(
-#     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-#     legend.position = "right",
-#     # Shrink the legend text and title
-#     legend.text = element_text(size = 12), 
-#     legend.title = element_text(size = 12, face = "bold"),
-#     # Keep your subtitle styling
-#     plot.subtitle = element_text(color = "grey40", hjust = 1)
-#   )
-# 
-#   
+
+ 
 # --------------------------------
 # 1. Create the pattern vector for this specific dataframe
 all_acts_w <- unique(props_activity_weight$QImportant_Activities_Most2)
@@ -199,11 +195,12 @@ pattern_values_w <- setNames(rep("none", length(all_acts_w)), all_acts_w)
 pattern_values_w["Another activity"] <- "stripe"
 
 # 2. Build the plot with patterns
-ggplot(props_activity_weight, 
+p1<-ggplot(props_activity_weight, 
        aes(x = QImportant_Activities_Most2, y = pct, 
            fill = consumptive_b,
            pattern = QImportant_Activities_Most2)) + # Map pattern to the activity
-  
+
+# stripe pattern for "Another Activity"  
   geom_col_pattern(
     show.legend = TRUE,
     pattern_color = "transparent", 
@@ -218,6 +215,7 @@ ggplot(props_activity_weight,
   
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
                      limits = c(0, max(props_activity_weight$pct) * 1.2)) +
+  scale_x_discrete(labels = activity_labels) +
   
   scale_fill_manual(
     values = c("Non-consumptive" = "#79ABE2", "Consumptive" = "#d43d51"), ##206161
@@ -241,19 +239,26 @@ ggplot(props_activity_weight,
   theme_minimal(base_size = 18) +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-    legend.position = "right",
-    legend.text = element_text(size = 12), 
-    legend.title = element_text(size = 12, face = "bold"),
+    legend.position = c(0.95, 0.95),        #  top right
+    legend.justification = c("right", "top"), # Anchors the legend by its top-right corner
+    
+    legend.text = element_text(size = 15), 
+    legend.title = element_text(size = 16, face = "bold"),
     plot.subtitle = element_text(color = "grey40", hjust = 1)
   )
 
-ggsave("./doc/QImportant_Activities_Most_activity_w.png",   width = 12, height = 10,     # size in inches
+
+ggsave("./doc/QImportant_Activities_Most_activity_w.png",   p1,width = 12, height = 10,     # size in inches
        units = "in",              # "in", "cm", or "mm"
        dpi = 300,                 # resolution (300+ for publication quality)
-       bg = "white"               # background color (use "transparent" if needed)
+       bg = "white"               # background color ("transparent")
 )
 
-
+ggsave("./doc/QImportant_Activities_Most_activity_wide.png",   p1,width = 14, height = 10,     # size in inches
+       units = "in",              # "in", "cm", or "mm"
+       dpi = 300,                 # resolution (300+ for publication quality)
+       bg = "white"               # background color ("transparent")
+)
 
 
 
@@ -378,7 +383,7 @@ pattern_values["Another activity"] <- "stripe"
 "Another activity" %in% props_activity_QImportant_Activities2$QImportant_Activities2
   
 # graph ----------------
-ggplot(props_activity_QImportant_Activities2, 
+p2<-ggplot(props_activity_QImportant_Activities2, 
        aes(x = QImportant_Activities2, y = pct, 
            fill = is_consumptive,
            pattern = QImportant_Activities2)) + # pattern allows for stripes
@@ -410,25 +415,33 @@ ggplot(props_activity_QImportant_Activities2,
   
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), 
                      limits = c(0, max(props_activity_QImportant_Activities2$pct) * 1.15)) +
-  
+  scale_x_discrete(labels = activity_labels) +
   labs(
     x = "Activity",
-    y = "Percent of Activities",
+    y = "Percent of Total Activities",
     subtitle = paste0("\u03C7\u00B2(", chi_df1_QImportant_Activities2, ") = ", 
                       round(chi_stat1_QImportant_Activities2, 2), ", p ", fmt_p1_QImportant_Activities2)
   ) +
   theme_minimal(base_size = 18) +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-    legend.position = "right",
-    legend.text = element_text(size = 12), 
-    legend.title = element_text(size = 12, face = "bold"),
+    legend.position = c(0.95, 0.95),        #  top right
+    legend.justification = c("right", "top"), # Anchors the legend by its top-right corner
+    
+    legend.text = element_text(size = 15), 
+    legend.title = element_text(size = 16, face = "bold"),
     plot.subtitle = element_text(color = "grey40", hjust = 1)
   )
 
-ggsave("./doc/QImportant_Activities2_activity_w2.png",  width = 12, height = 10,     # size in inches
+ggsave("./doc/QImportant_Activities2_activity_w2.png",  p2,width = 12, height = 10,     # size in inches
        units = "in",              # "in", "cm", or "mm"
-       dpi = 300,                 # resolution (300+ for publication quality)
+       dpi = 300,                 # resolution 
        bg = "white"               # background color (use "transparent" if needed)
 )
 
+
+ggsave("./doc/QImportant_Activities2_activity_w2_wide.png",  p2,width = 14, height = 10,     # size in inches
+       units = "in",              # "in", "cm", or "mm"
+       dpi = 300,                 # resolution 
+       bg = "white"               # background color (use "transparent" if needed)
+)

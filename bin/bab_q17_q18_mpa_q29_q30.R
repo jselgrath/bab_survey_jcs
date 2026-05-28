@@ -2,7 +2,7 @@
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation/ CINMS
 
-# goal: subset cleaned data for graphing and making long version - ecosystem services
+# goal: basic analysis and graphs for MPA and NMS questions
 
 # ----------------------------------------------------------
 # load libraries ######-------------------------------------
@@ -14,35 +14,37 @@ library(colorspace)
 # load data ######-----------------------------------------------------------
 rm(list = ls(all = TRUE))
 # setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
-setwd("G:/My Drive/research/r_projects/bab_survey_jcs/")
+# setwd("G:/My Drive/research/r_projects/bab_survey_jcs/")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
-d1<-read_csv("./results/data_long5.csv")%>%
-  select(quest_comb,response_id,Q1,Q2,Q4,Q5,Q8,Q17:Q32_4,Q20a_5,Q24,Q25,Q27,Q28,Q31b,YEAR)%>%
-  mutate(Q24 = as.character(Q24), Q17 = as.character(Q17)) %>%
+d1<-read_csv("./results/data_long9.csv")%>%
+  # select(quest_comb,response_id,Q1,Q2,Q4,Q5,Q8,QMPA_Aware:Q32_4,Q20a_5,Q24,Q25,Q27,Q28,Q31b,YEAR)%>%
+  # mutate(Q24 = as.character(Q24), QMPA_Aware = as.character(QMPA_Aware)) %>%
   glimpse()
 d1
 
 
-levels(factor(d1$Q24)) # check race categories
+# levels(factor(d1$Q24)) # check race categories
 
 
 # -- select MPA, NMS and Race questions --
-d3<-d1%>%
-  filter(Q17!=4) %>% # error - unsure of source
-  select(response_id,Q17,Q18,Q29,Q30,Q24)
+# d3<-d1%>%
+#   filter(QMPA_Aware!=4) %>% # error - unsure of source
+#   # select(response_id,QMPA_Aware,QSanct_Aware,QMPA_Purpose,QMPA_Science,Q24)%>%
+#   glimpse()
 
 
 # -- relevel and combine categories from 2024 data to match 2025 data, or to collapse small categories -------------------
 
 # Familiarity wth  MPAs -----------------
-d4 <- d3 %>%
-  filter(!is.na(Q17)) %>%
-  mutate(Q17 = fct_collapse(Q17,
+d4 <- d1 %>%
+  filter(!is.na(QMPA_Aware)) %>%
+  mutate(QMPA_Aware = fct_collapse(QMPA_Aware,
                             "Extremely familiar" = c("Very familiar", "Extremely familiar")))%>%
-  mutate(Q17 = fct_collapse(Q17,
+  mutate(QMPA_Aware = fct_collapse(QMPA_Aware,
                             "Not familiar\n(never heard of)" = c("Not familiar at all (never heard of them)")))%>%
-  mutate(Q17 = factor(
-    Q17,
+  mutate(QMPA_Aware = factor(
+    QMPA_Aware,
     levels = c(
       "Not familiar\n(never heard of)",
       "Slightly familiar",
@@ -50,19 +52,19 @@ d4 <- d3 %>%
       "Extremely familiar"
     )))%>%
   glimpse()
-unique(d4$Q17)
+unique(d4$QMPA_Aware)
 
 
 
 # Familiarity wth  NMS -----------------
-d5 <- d3 %>%
-  filter(!is.na(Q18)) %>%
-  mutate(Q18 = fct_collapse(Q18,
+d5 <- d1 %>%
+  filter(!is.na(QSanct_Aware)) %>%
+  mutate(QSanct_Aware = fct_collapse(QSanct_Aware,
                             "Extremely familiar" = c("Very familiar", "Extremely familiar")))%>%
-  mutate(Q18 = fct_collapse(Q18,
+  mutate(QSanct_Aware = fct_collapse(QSanct_Aware,
                             "Not familiar\n(never heard of)" = c("Not familiar at all (never heard of them)")))%>%
-  mutate(Q18 = factor(
-    Q18,
+  mutate(QSanct_Aware = factor(
+    QSanct_Aware,
     levels = c(
       "Not familiar\n(never heard of)",
       "Slightly familiar",
@@ -70,18 +72,18 @@ d5 <- d3 %>%
       "Extremely familiar"
     )))%>%
   glimpse()
-unique(d5$Q18)
+unique(d5$QSanct_Aware)
 
 
 
 # ----------------------------------
 # -- general graphs ------------
 
-# -- MPA graphs - Q17 ---------------------------
+# -- MPA graphs - QMPA_Aware ---------------------------
 
 # -- organize --
 counts_mpa <- d4 %>%
-  group_by(Q17) %>%
+  group_by(QMPA_Aware) %>%
   summarise(n = n_distinct(response_id), .groups = "drop")
 
 props_mpa <- counts_mpa %>%
@@ -97,11 +99,11 @@ chi_p1   <- chi1$p.value
 fmt_p1 <- ifelse(chi_p1 < .001, "< 0.001", scales::number(chi_p, accuracy = 0.001)) #  formatted p
 
 resids1 <- chi1$stdres
-data.frame(Q17 = props_mpa$Q17, Residual = resids1)
+data.frame(QMPA_Aware = props_mpa$QMPA_Aware, Residual = resids1)
 
 
 # -- graph --
-ggplot(props_mpa, aes(x = Q17, y = pct, fill = Q17)) +
+ggplot(props_mpa, aes(x = QMPA_Aware, y = pct, fill = QMPA_Aware)) +
   geom_col(show.legend = FALSE) +  # hide redundant legend (optional)
   geom_text(aes(label = percent(pct, accuracy = 0.1)),
             vjust = -0.4, size = 3.8) +
@@ -126,7 +128,7 @@ ggplot(props_mpa, aes(x = Q17, y = pct, fill = Q17)) +
   scale_fill_discrete_sequential(palette = "Teal")
 
 
-ggsave("./doc/q17_mpa_famil.png",   width = 6, height = 8,     # size in inches
+ggsave("./doc/QMPA_Aware_mpa_famil.png",   width = 6, height = 8,     # size in inches
   units = "in",              # "in", "cm", or "mm"
   dpi = 300,                 # resolution (300+ for publication quality)
   bg = "white"               # background color (use "transparent" if needed)
@@ -134,9 +136,9 @@ ggsave("./doc/q17_mpa_famil.png",   width = 6, height = 8,     # size in inches
 
 
 
-# -- NMS graphs - Q18 ------------------------------
+# -- NMS graphs - QSanct_Aware ------------------------------
 counts_nms <- d5 %>%
-  group_by(Q18) %>%
+  group_by(QSanct_Aware) %>%
   summarise(n = n_distinct(response_id), .groups = "drop")
 
 props_nms <- counts_nms %>%
@@ -151,10 +153,10 @@ chi_p2   <- chi2$p.value
 fmt_p2 <- ifelse(chi_p2 < .001, "< 0.001", scales::number(chi_p2, accuracy = 0.001)) #  formatted p
 
 resids2 <- chi2$stdres
-data.frame(Q18 = props_nms$Q18, Residual = resids2)
+data.frame(QSanct_Aware = props_nms$QSanct_Aware, Residual = resids2)
 
 # -- graph --
-ggplot(props_nms, aes(x = Q18, y = pct, fill = Q18)) +
+ggplot(props_nms, aes(x = QSanct_Aware, y = pct, fill = QSanct_Aware)) +
   geom_col(show.legend = FALSE) +  # hide redundant legend (optional)
   geom_text(aes(label = percent(pct, accuracy = 0.1)),
             vjust = -0.4, size = 3.8) +
@@ -179,7 +181,7 @@ ggplot(props_nms, aes(x = Q18, y = pct, fill = Q18)) +
   scale_fill_discrete_sequential(palette = "Teal")
 
 
-ggsave("./doc/q18_nms_famil.png",   width = 6, height = 8,     # size in inches
+ggsave("./doc/QSanct_Aware_nms_famil.png",   width = 6, height = 8,     # size in inches
        units = "in",              # "in", "cm", or "mm"
        dpi = 300,                 # resolution (300+ for publication quality)
        bg = "white"               # background color (use "transparent" if needed)
@@ -187,11 +189,11 @@ ggsave("./doc/q18_nms_famil.png",   width = 6, height = 8,     # size in inches
 
 
 # --------------------------------------------------------
-# Familiarity wth  MPAs purpose - Q29 (2025 only) -----------------
-d6 <- d3 %>%
-  filter(!is.na(Q29))%>% 
-mutate(Q29 = factor(
-  Q29,
+# Familiarity wth  MPAs purpose - QMPA_Purpose (2025 only) -----------------
+d6 <- d1 %>%
+  filter(!is.na(QMPA_Purpose))%>% 
+mutate(QMPA_Purpose = factor(
+  QMPA_Purpose,
   levels = c(
     "No understanding",
     "Slight understanding",
@@ -199,34 +201,34 @@ mutate(Q29 = factor(
     "Full understanding"
   )))%>%
   glimpse()
-unique(d6$Q29)
+unique(d6$QMPA_Purpose)
 
-counts_Q29 <- d6 %>%
-  group_by(Q29) %>%
+counts_QMPA_Purpose <- d6 %>%
+  group_by(QMPA_Purpose) %>%
   summarise(n = n_distinct(response_id), .groups = "drop")
 
-props_Q29 <- counts_Q29 %>%
+props_QMPA_Purpose <- counts_QMPA_Purpose %>%
   mutate(pct = n / sum(n)) %>%
   ungroup()
 
 # -- compare expected frequencies to observed values --
-chi3 <- chisq.test(props_Q29$n) # default = equal proportions
+chi3 <- chisq.test(props_QMPA_Purpose$n) # default = equal proportions
 chi_stat3 <- unname(chi3$statistic)
 chi_df3   <- unname(chi3$parameter)
 chi_p3   <- chi3$p.value
 fmt_p3 <- ifelse(chi_p3 < .001, "< 0.001", scales::number(chi_p3, accuracy = 0.001)) #  formatted p
 
 resids3 <- chi3$stdres
-data.frame(Q29 = props_Q29$Q29, Residual = resids3)
+data.frame(QMPA_Purpose = props_QMPA_Purpose$QMPA_Purpose, Residual = resids3)
 
 # -- graph --
-ggplot(props_Q29, aes(x = Q29, y = pct, fill = Q29)) +
+ggplot(props_QMPA_Purpose, aes(x = QMPA_Purpose, y = pct, fill = QMPA_Purpose)) +
   geom_col(show.legend = FALSE) + 
   geom_text(aes(label = percent(pct, accuracy = 0.1)),
             vjust = -0.4, size = 3.8) +
   # Note: I removed ylim(0,.35) because it conflicts with scale_y_continuous below
   scale_y_continuous(labels = percent_format(accuracy = 1), 
-                     limits = c(0, max(props_Q29$pct) * 1.15)) +
+                     limits = c(0, max(props_QMPA_Purpose$pct) * 1.15)) +
   labs(
     x = "Purpose of\nSanctuaries & MPAs", # Fixed the slash to \n
     y = "Percent of Respondents",
@@ -243,7 +245,7 @@ ggplot(props_Q29, aes(x = Q29, y = pct, fill = Q29)) +
 
 
 
-ggsave("./doc/q29_mpa_purpose.png",   width = 6, height = 8,     # size in inches
+ggsave("./doc/QMPA_Purpose_mpa_purpose.png",   width = 6, height = 8,     # size in inches
        units = "in",              # "in", "cm", or "mm"
        dpi = 300,                 # resolution (300+ for publication quality)
        bg = "white"               # background color (use "transparent" if needed)
@@ -252,11 +254,11 @@ ggsave("./doc/q29_mpa_purpose.png",   width = 6, height = 8,     # size in inche
 
 
 # --------------------------------------------------------
-# Familiarity wth  MPAs science - Q30 -----------------
-d7 <- d3 %>%
-  filter(!is.na(Q30))%>%# Familiarity wth  MPAs -----------------
-mutate(Q30 = factor(
-  Q30,
+# Familiarity wth  MPAs science - QMPA_Science -----------------
+d7 <- d1 %>%
+  filter(!is.na(QMPA_Science))%>%# Familiarity wth  MPAs -----------------
+mutate(QMPA_Science = factor(
+  QMPA_Science,
   levels = c(
     "No understanding",
     "Slight understanding",
@@ -264,33 +266,33 @@ mutate(Q30 = factor(
     "Full understanding"
   )))%>%
   glimpse()
-unique(d7$Q30)
+unique(d7$QMPA_Science)
 
-counts_Q30 <- d7 %>%
-  group_by(Q30) %>%
+counts_QMPA_Science <- d7 %>%
+  group_by(QMPA_Science) %>%
   summarise(n = n_distinct(response_id), .groups = "drop")
 
-props_Q30 <- counts_Q30 %>%
+props_QMPA_Science <- counts_QMPA_Science %>%
   mutate(pct = n / sum(n)) %>%
   ungroup()
 
 # -- compare expected frequencies to observed values --
-chi4 <- chisq.test(props_Q30$n) # default = equal proportions
+chi4 <- chisq.test(props_QMPA_Science$n) # default = equal proportions
 chi_stat4 <- unname(chi4$statistic)
 chi_df4   <- unname(chi4$parameter)
 chi_p4   <- chi4$p.value
 fmt_p4 <- ifelse(chi_p4 < .001, "< 0.001", scales::number(chi_p4, accuracy = 0.001)) #  formatted p
 
 resids4 <- chi4$stdres
-data.frame(Q30 = props_Q30$Q30, Residual = resids4)
+data.frame(QMPA_Science = props_QMPA_Science$QMPA_Science, Residual = resids4)
 
 # -- graph --
-ggplot(props_Q30, aes(x = Q30, y = pct, fill = Q30)) +
+ggplot(props_QMPA_Science, aes(x = QMPA_Science, y = pct, fill = QMPA_Science)) +
   geom_col(show.legend = FALSE) +  # hide redundant legend (optional)
   geom_text(aes(label = percent(pct, accuracy = 0.1)),
             vjust = -0.4, size = 3.8) +
   ylim(0,.35)+
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, max(props_Q30$pct) * 1.15)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, max(props_QMPA_Science$pct) * 1.15)) +
   labs(
     x = "Role of Science for\nSanctuaries & MPAs", # and NMS
     y = "Percent of Respondents",
@@ -311,7 +313,7 @@ ggplot(props_Q30, aes(x = Q30, y = pct, fill = Q30)) +
 
 
 
-ggsave("./doc/Q30_mpa_science.png",   width = 6, height = 8,     # size in inches
+ggsave("./doc/QMPA_Science_mpa_science.png",   width = 6, height = 8,     # size in inches
        units = "in",              # "in", "cm", or "mm"
        dpi = 300,                 # resolution (300+ for publication quality)
        bg = "white"               # background color (use "transparent" if needed)

@@ -19,17 +19,12 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # comments - for activities and dogs
-d0<-read_csv("./results/q32_bab_comments_cleaned_demographics_not_all_versions.csv")%>%
-  select(ResponseId,comment_clean,use_activity)%>%
+d0<-read_csv("./results/q32_bab_comments_cleaned_not_all_versions.csv")%>%
+  # select(response_id,comment_clean,use_activity)%>%
   glimpse()
 
 d1a<-read_csv("./results/data_long6.csv")%>%
-  # select(ResponseId,QDesired_Time,QActual_Time,QImportant_Activities,QImportant_Activities_TEXT,QImportant_Activities_Most,QImportant_Activities_Most_TEXT,QTransport_Time,QActivity_Mentor,QActivity_Mentor_TEXT,
-         # QActivity_Companion,QFishing,QFishing_Type,QDemographic_Home:QDemographic_Swimming,Version,Mechanism,EJ_Bin,Distance,Distance_Binned)%>%
-  # mutate(QActual_Time4 = as.character(QActual_Time4), Q4 = as.character(Q4), Q5 = as.character(Q5)) %>%
-  mutate(QActual_Time=if_else(QActual_Time=="Less than once a year (i.e., rarely or never)","Less than once a year",QActual_Time))%>%
   glimpse()
-d1a
 
 # check for important activities
 sum(is.na(d1a$QImportant_Activities))

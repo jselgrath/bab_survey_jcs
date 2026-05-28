@@ -22,6 +22,16 @@ d0<-read_csv("./results/data_long3.csv")%>%
   mutate(QImportant_Activities_TEXT  = as.character(QImportant_Activities_TEXT ))%>%  # all activities
   mutate(QImportant_Activities_Most = as.character(QImportant_Activities_Most))%>%  # important activity
   mutate(QImportant_Activities_Most_TEXT = as.character(QImportant_Activities_Most_TEXT))%>%  # important activity
+  mutate(
+    QImportant_Activities = str_replace_all(
+      QImportant_Activities, 
+      "Swimming or bodysurfing", 
+      "Swimming/Bodysurfing"))%>%
+  mutate(
+    QImportant_Activities_Most = str_replace_all(
+      QImportant_Activities_Most, 
+      "Swimming or bodysurfing", 
+      "Swimming/Bodysurfing"))%>%
   glimpse()
 d0
 
@@ -126,7 +136,7 @@ d1%>%
 # other activities
 d2<-d1%>%
   filter(QImportant_Activities_Most=="Another activity")%>%
-  select(ResponseId,QImportant_Activities_TEXT)%>%
+  select(response_id,QImportant_Activities_TEXT)%>%
   filter(!is.na(QImportant_Activities_TEXT))%>%
   glimpse()
 

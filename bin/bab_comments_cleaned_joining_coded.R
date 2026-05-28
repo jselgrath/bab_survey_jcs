@@ -33,9 +33,9 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # demographics etc
-d0<-read_csv("./results/data_long6.csv")%>%
-  mutate(response_id=ResponseId)%>%
-  glimpse()
+# d0<-read_csv("./results/data_long6.csv")%>%
+#   mutate(response_id=ResponseId)%>%
+#   glimpse()
 
 folder_path <- "./data/comments/" # for files with comments
 
@@ -99,10 +99,10 @@ final_df2 <- final_df %>%
   glimpse()
 
 # merge cleaned comments with full dataset
-d1<- d0%>%
-  right_join(final_df2)%>%
-  glimpse()
+# d1<- d0%>%
+#   right_join(final_df2)%>%
+#   glimpse()
 
 
 # save ---------------------
-write_csv(d1,"./results/q32_bab_comments_cleaned_demographics_not_all_versions.csv")
+write_csv(final_df2,"./results/q32_bab_comments_cleaned_not_all_versions.csv") # was d1
