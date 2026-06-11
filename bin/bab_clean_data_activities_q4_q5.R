@@ -129,14 +129,14 @@ unique(d1$QImportant_Activities_Most)
 # check NAs for most important activities - none - in other text from first prompt
 d1%>%
   filter(is.na(QImportant_Activities_Most))%>%
-  select(QImportant_Activities_Most_TEXT)#%>%
+  dplyr::select(QImportant_Activities_Most_TEXT)#%>%
   #view()
 
 
 # other activities
 d2<-d1%>%
   filter(QImportant_Activities_Most=="Another activity")%>%
-  select(response_id,QImportant_Activities_TEXT)%>%
+  dplyr::select(response_id,QImportant_Activities_TEXT)%>%
   filter(!is.na(QImportant_Activities_TEXT))%>%
   glimpse()
 

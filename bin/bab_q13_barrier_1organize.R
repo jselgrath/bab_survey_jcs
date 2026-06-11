@@ -63,7 +63,7 @@ d0<-read_csv("./results/data_long9.csv")%>%
 
 # focus group version
 d1<-read_csv("./results/data_long9_fg.csv")%>%
-  select(QBarriers_1:QBarriers_10,ResponseId,zip_code,Focus_Group,Phase)%>%  # reduce data
+  dplyr::select(QBarriers_1:QBarriers_10,ResponseId,zip_code,Focus_Group,Phase)%>%  # reduce data
   glimpse()
 names(d1)
 d1

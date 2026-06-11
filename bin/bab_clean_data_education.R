@@ -40,7 +40,7 @@ d2<- d1 %>%
       TRUE ~ NA_character_   # anything unmatched becomes NA so we can drop it
     )
   ) %>%
-  select(-QDemographic_Country_State,-QDemographic_Education)%>%
+  dplyr::select(-QDemographic_Education)%>%
   glimpse()
 
 #save

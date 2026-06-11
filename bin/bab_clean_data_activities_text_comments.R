@@ -15,12 +15,10 @@ library(colorspace)
 # --------------------------------------------------------------------------
 # load data -----------------------------------------------------------
 rm(list = ls(all = TRUE))
-# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # comments - for activities and dogs
-d0<-read_csv("./results/q32_bab_comments_cleaned_not_all_versions.csv")%>%
-  # select(response_id,comment_clean,use_activity)%>%
+d0<-read_csv("./results/q_comments_cleaned.csv")%>%
   glimpse()
 
 d1a<-read_csv("./results/data_long6.csv")%>%
@@ -84,7 +82,7 @@ standardize_to_official <- function(text) {
 
 
 
-# Helper function to merge two comma-separated strings -------------------------
+# merge two comma-separated strings -------------------------
 merge_activities <- function(original, cleaned) {
   # Map over the two vectors
   map2_chr(original, cleaned, function(x, y) {
@@ -169,7 +167,7 @@ filter(d2,is.na(QImportant_Activities_Cleaned))%>%
 
 d2 %>% 
   filter(!is.na(QImportant_Activities_TEXT)) %>% 
-  select(QImportant_Activities, QImportant_Activities_TEXT, QImportant_Activities2) %>% 
+  dplyr::select(QImportant_Activities, QImportant_Activities_TEXT, QImportant_Activities2) %>% 
   head(20)
 
 
@@ -182,7 +180,7 @@ table(d2$QImportant_Activities_Most2)
 
 
 # check other ways
-d2%>%select(QImportant_Activities_TEXT,QImportant_Activities2)#%>%view()
+d2%>%dplyr::select(QImportant_Activities_TEXT,QImportant_Activities2)#%>%view()
 
 glimpse(d2)
 unique(d2$QImportant_Activities)

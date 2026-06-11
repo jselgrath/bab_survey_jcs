@@ -11,7 +11,7 @@ library(scales)
 library(colorspace)
 # -------------------------------------------------------------
 rm(list = ls(all = TRUE))
-setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
+setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # ---- Load and select relevant columns ----
 d1 <- readr::read_csv("./results/data_long5.csv", show_col_types = FALSE) %>%
@@ -160,6 +160,6 @@ print(p)
 
 # ---- Save ----
 ggsave("./doc/q17_mpa_famil_activity3.png",
-       plot = p, width = 18, height = 8, units = "in",
+       plot = p, width = 25, height = 8, units = "in",
        dpi = 300, bg = "white")
 

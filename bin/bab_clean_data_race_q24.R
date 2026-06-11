@@ -75,6 +75,17 @@ d1$q_demographic_race<-gsub("Native Hawaiian or Pacific Islander","Pacific Islan
 unique(d1$q_demographic_race)
 
 
+# check mismatches -------------------------
+mismatches <- d1 %>%
+  filter(q_demographic_race != QDemographic_Race | 
+           is.na(q_demographic_race) != is.na(QDemographic_Race))
 
+# View the mismatched columns side-by-side
+# mismatches %>% select(q_demographic_race, QDemographic_Race)#%>%view()
 
-write_csv(d1,"./results/data_long2.csv")
+d2<-d1%>%
+  dplyr::select(-QDemographic_Race)%>%
+  glimpse()
+
+# save -------------------------------------
+write_csv(d2,"./results/data_long2.csv")

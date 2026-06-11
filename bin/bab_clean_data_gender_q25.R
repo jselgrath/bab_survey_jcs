@@ -38,5 +38,10 @@ d1$q_demographic_gender<-gsub("Transgender, non-binary, or another gender,Transg
 
 unique(d1$q_demographic_gender)
 
+d2<-d1%>%
+  dplyr::select(-QDemographic_Gender)%>%
+  glimpse()
+  
 
-write_csv(d1,"./results/data_long3.csv")
+
+write_csv(d2,"./results/data_long3.csv")

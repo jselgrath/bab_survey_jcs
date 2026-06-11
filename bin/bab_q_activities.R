@@ -440,7 +440,7 @@ ggsave("./doc/QImportant_Activities2_activity_w2.png",  p2,width = 12, height = 
 )
 
 
-ggsave("./doc/QImportant_Activities2_activity_w2_wide.png",  p2,width = 14, height = 10,     # size in inches
+ggsave("./doc/QImportant_Activities2_activity_w2_wide.png",  p2,width = 18, height = 8,     # size in inches
        units = "in",              # "in", "cm", or "mm"
        dpi = 300,                 # resolution 
        bg = "white"               # background color (use "transparent" if needed)

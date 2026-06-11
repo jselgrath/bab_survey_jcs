@@ -12,9 +12,7 @@ library(colorspace)
 library(lubridate)
 
 # --------------------------------------------------------------------------
-# load data -----------------------------------------------------------
 rm(list = ls(all = TRUE))
-# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # read file
@@ -25,7 +23,7 @@ d1<-read_csv("./results/data_long8.csv")%>%
 sd<-20240901
 
 # end_date
-ed<-20241101
+ed<-20241130
 
 
 # ---------------------------------------------------------
@@ -61,7 +59,7 @@ monthly_fishing_any_summary <- d1 %>%
   ) %>%
   
   # Clean and calculate percentage
-  select(start_date, end_date, responses_n, fishing_n) %>%
+  dplyr::select(start_date, end_date, responses_n, fishing_n) %>%
   mutate(fishing_pct = fishing_n / responses_n,
          fishing_type="any_activity",
          mechanism="All") %>%
@@ -94,7 +92,7 @@ summary_no_influencer <- monthly_fishing_any_summary %>%
   )
 
 # grand mean - only sept and oct 2024
-summary_only_aw <- monthly_fishing_any_summary %>%
+summary_only_influencer <- monthly_fishing_any_summary %>%
   filter(start_date == sd | start_date == "20241001"| start_date == ed) %>%
   summarize(
     responses_n_only_aw = sum(responses_n),
@@ -103,7 +101,7 @@ summary_only_aw <- monthly_fishing_any_summary %>%
   )
 
 # Combine summaries into one wide table
-monthly_fishing_any_versions <- cbind(summary_all, summary_no_aw, summary_only_aw) %>%
+monthly_fishing_any_versions <- cbind(summary_all, summary_no_influencer, summary_only_influencer) %>%
   mutate(mechanism="All",
          fishing_type="any_activity")%>%
   glimpse()
@@ -142,7 +140,7 @@ monthly_fishing_summary_most <- d1 %>%
     end_date = format(end_date_obj, "%Y%m%d")
   ) %>%
   # 3. Clean up and organize
-  select(start_date, end_date, responses_n, fishing_n) %>%
+  dplyr::select(start_date, end_date, responses_n, fishing_n) %>%
   mutate(fishing_pct=fishing_n/responses_n,
          fishing_type="most_important_activity",
          mechanism="All")%>%

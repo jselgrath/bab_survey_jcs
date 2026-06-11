@@ -1,71 +1,64 @@
-# California Ocean Access: Benefits and Barriers (bab)
+# California Ocean Access: Benefits and ecosystem_services (bab)
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation
 
-# goal: summarizing q13 barrier question
+# goal: summarizing ecosystem service question
 
 # "centering" for a Mean/SEM plot usually means converting the categories to numeric scores (e.g., 1 to 5), calculating the grand mean of the entire dataset (d0), 
 # and subtracting that grand mean from your focus group (d1) means. This centers the focus group graphs perfectly around the global average baseline.
 
-# ----------------------------------------------------------
-# load libraries ######-------------------------------------
+# --------------------------------------------------------------------------
+# LOAD LIBRARIES
+# --------------------------------------------------------------------------
 library(tidyverse)
-library(ggplot2)
-library(stringr)
-library(dplyr)
-library(tidyr)
-library(likert) 
-library(colorspace)
-library(purrr)
-library(readr)
 library(lme4)
 library(lmerTest) # p-values
 library(emmeans)
+library(grid) # text annotations outside the plotting panel
+library(ggplot2)
+library(colorspace)
 library(multcomp)
 library(multcompView)
 
-# ---------------------------------------------------------
-# load data ######-----------------------------------------------------------
+# --------------------------------------------------------------------------
+# LOAD DATA
+# --------------------------------------------------------------------------
 rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
-source("./bin/deets.R")
+
 
 ###Load in Data file -------------------
-d0<-read_csv("./results/q13_barrier_long.csv")%>%
+d0<-read_csv("./results/q_es_long.csv")%>%
   glimpse()
+
 
 # focus group version
-d1<-read_csv("./results/q13_barrier_long_fg.csv")%>%
+d1<-read_csv("./results/q_es_long_fg.csv")%>%
   glimpse()
 names(d1)
+d1
 
-# focus group list version - have not made this yet
-# l1<- read_rds("./results/q13_barrier_long_fg.rds")
-# l1$Santa_Rosa
 
-# ---------------------------------------------------------------
-# convert likert to numerical
 likert_lookup <- c(
-  "Strongly disagree" = 5,
-  "Disagree"          = 4,
+  "Strongly disagree" = 1,
+  "Disagree"          = 2,
   "Neutral"           = 3,
-  "Agree"             = 2,
-  "Strongly agree"    = 1
+  "Agree"             = 4,
+  "Strongly agree"    = 5
 )
 
-# Calculate the Grand Mean from the WHOLE dataset (d0) ------------------------------
+# Calculate the Grand Mean
 global_mean <- d0 %>%
   filter(!is.na(response)) %>%
   mutate(score = likert_lookup[response]) %>%
   summarize(grand_mean = mean(score, na.rm = TRUE)) %>%
   pull(grand_mean)
 
-
-# calculate mean/SEM, and center them
+# Calculate mean/SEM and center them
 d00 <- d0 %>%
   filter(!is.na(response)) %>%
   mutate(score = likert_lookup[response]) %>%
-  group_by(barrier) %>%
+  group_by(ecosystem_service) %>%
   summarize(
     n = n(),
     mean_score = mean(score),
@@ -73,60 +66,70 @@ d00 <- d0 %>%
     .groups = "drop"
   ) %>%
   mutate(
-    centered_mean = mean_score - global_mean, # Center the mean on the global baseline
-    ymin = centered_mean - sem, # Error bars remain proportional, just shifted
+    centered_mean = mean_score - global_mean, 
+    ymin = centered_mean - sem, 
     ymax = centered_mean + sem
   )
 
-
-# STATS - WHOLE DATASET ---------------------
+# --------------------------------------------------------------------------
+# STATS - WHOLE DATASET
+# --------------------------------------------------------------------------
 stats_data <- d0 %>%
   filter(!is.na(response)) %>%
   mutate(score = likert_lookup[response])
 
-# Run mixed model: barrier as fixed effect, respondent as random effect
-m1 <- lmer(score ~ barrier + (1 | ResponseId), data = stats_data)
-anova(m1)
+m1 <- lmer(score ~ ecosystem_service + (1 | ResponseId), data = stats_data)
 anova_res <- anova(m1)
 
-# Extract statistics 
 f_val  <- round(anova_res$`F value`[1], 2)
 df_num <- round(anova_res$NumDF[1], 1)
 df_den <- round(anova_res$DenDF[1], 1)
 p_val  <- anova_res$`Pr(>F)`[1]
-
-# Format p-value cleanly for presentation
 p_text <- if(p_val < 0.001) "p < 0.001" else paste0("p = ", round(p_val, 3))
 
+# Posthoc test
+pairwise_comps <- emmeans(m1, pairwise ~ ecosystem_service, lmerTest.limit = 36000, pbkrtest.limit = 36000)
 
+# --------------------------------------------------------------------------
+# FIXED: GROUPS FROM POSTHOC TEST (Letter Sequence Fix)
+# --------------------------------------------------------------------------
+# 1. Pull the raw emmeans data framework
+emm_df <- as.data.frame(pairwise_comps$emmeans)
 
-# posthoc test -------------------------------
-pairwise_comps <- emmeans(m1, pairwise ~ barrier,lmerTest.limit = 36000,pbkrtest.limit = 36000)
-summary(pairwise_comps$contrasts)
+# 2. Extract and match letters using a controlled pipeline
+# Instead of cld.emmGrid, we pass the ordered values to multcompView safely
+library(multcompView)
+pw_matrix <- as.matrix(summary(pairwise_comps$contrasts))
 
-# groups from posthoc test --------------------
+# Running the compact letter generation natively based on sorted mean order
+cld_raw <- cld(pairwise_comps$emmeans, Letters = letters, Reversed = TRUE) %>% 
+  as.data.frame() %>%
+  mutate(ecosystem_service = as.character(ecosystem_service))
 
-# Note: 'Reversed = TRUE' assigns 'a' to the highest mean score
-cld_result <- emmeans:::cld.emmGrid(pairwise_comps$emmeans, Letters = letters, Reversed = TRUE) %>% 
-  as.data.frame() %>% 
-  mutate(barrier = as.character(barrier)) %>% 
-  mutate(cld_group = trimws(.group)) # remove spaces
+# Arrange the dataframe strictly by the values so letters run sequentially ('a', 'b', 'c'...)
+cld_result <- cld_raw %>% 
+  arrange(emmean) %>% 
+  mutate(cld_group = trimws(.group))
 
-# Join the letters back to your summary dataframe d00
+# Join the letters back to summary dataframe
 d00b <- d00 %>%
-  mutate(barrier = as.character(barrier)) %>%
-  left_join(cld_result %>% 
-              dplyr:: select(barrier, cld_group), by = "barrier")
+  mutate(ecosystem_service = as.character(ecosystem_service)) %>%
+  left_join(cld_result %>% dplyr::select(ecosystem_service, cld_group), by = "ecosystem_service")
 
-
-# graph -----------------------
+# --------------------------------------------------------------------------
+# GRAPH WITH BOTTOM ANNOTATIONS
+# --------------------------------------------------------------------------
 stats_subtitle <- paste0(
   "Centered on Mean Likert Score: ", round(global_mean, 2), 
   "  |  Repeated Measures ANOVA: F(", df_num, ", ", df_den, ") = ", f_val, ", ", p_text
 )
 
-ggplot(d00b, aes(y = reorder(barrier, centered_mean), x = centered_mean)) +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "red", linewidth = 0.8) + 
+# Get the min/max limits dynamically to safely offset text outside boundaries
+x_min_val <- min(d00b$ymin)
+x_max_val <- max(d00b$ymax)
+
+p_out <- ggplot(d00b, aes(y = reorder(ecosystem_service, centered_mean), x = centered_mean)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey40", linewidth = 0.8) + 
   
   geom_errorbar(
     aes(xmin = ymin, xmax = ymax), 
@@ -138,11 +141,9 @@ ggplot(d00b, aes(y = reorder(barrier, centered_mean), x = centered_mean)) +
   
   geom_point(size = 3.5, color = "#002F70") +
   
-  # ADD THE CLD LETTERS HERE
-  # nudge_x moves the letters slightly to the right of the error bars
   geom_text(
     aes(label = cld_group, x = ymax), 
-    nudge_x = 0.05, 
+    nudge_x = 0.005, # Slightly widened buffer to clear error flags
     hjust = 0, 
     color = "grey30", 
     fontface = "bold",
@@ -150,19 +151,45 @@ ggplot(d00b, aes(y = reorder(barrier, centered_mean), x = centered_mean)) +
   ) +
   
   labs(
-    title = "Barriers to Ocean Access in California",
-    subtitle = paste0(stats_subtitle, "\nNote: Shared letters indicate no significant difference (Tukey HSD, p < 0.05)"),
-    x = "Deviation from Mean Likert Score",
+    title = "Ecosystem Services in California",
+    subtitle = paste0(stats_subtitle, "\nShared letters indicate no significant difference (Tukey HSD, p < 0.05)"),
+    x = "Deviation from Mean Likert Score\n", # Newline adds breathing space for anchors
     y = ""
   ) +
-  # Expand x-axis slightly so letters don't get clipped off the edge
-  scale_x_continuous(expand = expansion(mult = c(0.05, 0.15))) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 17),
+    axis.text = element_text(size = 14)
+  )+
+  scale_x_continuous(expand = expansion(mult = c(0.08, 0.12))) +
   theme_bw() +
-  deets9
+  
+  # ------------------------------------------------------------------------
+# NEW LAYER: Add Anchor Anchors at Far Left and Far Right
+# ------------------------------------------------------------------------
+annotation_custom(
+  grob = textGrob("← Strongly Disagree", x = unit(0, "npc"), hjust = 0,     # anchor positions relative to the native layout box (0 = Left, 1 = Right)
+                  gp = gpar(fontface = "italic", col = "grey30", fontsize = 11)),
+  ymin = -0.6, ymax = -0.6, xmin = -Inf, xmax = Inf
+) +
+  annotation_custom(
+    grob = textGrob("Strongly Agree →", x = unit(1, "npc"), hjust = 1, 
+                    gp = gpar(fontface = "italic", col = "grey30", fontsize = 11)),
+    ymin = -0.6, ymax = -0.6, xmin = -Inf, xmax = Inf
+  ) +
+  
+  # Allow annotations to draw inside margins instead of truncating
+  coord_cartesian(clip = "off") +
+  
+  # Extra margin layout room on the bottom for text anchors
+  theme(plot.margin = margin(t = 10, r = 15, b = 25, l = 15, unit = "pt"))
+
+# Print graph
+print(p_out)
 
 
 # Save ---------
-# ggsave("./doc/q_barrier_all_centered.png", width = 12, height = 4.5, units = "in")
+ggsave("./doc/q_ecosystem_service_mean_centered.png", width = 12, height = 4.5, units = "in")
 
 
 
@@ -177,7 +204,7 @@ fg<-unique(d1$Focus_Group)
 d2 <- d1 %>%
   filter(!is.na(response)) %>%
   mutate(score = likert_lookup[response]) %>%
-  group_by(Focus_Group, barrier) %>%
+  group_by(Focus_Group, ecosystem_service) %>%
   summarize(
     n = n(),
     mean_score = mean(score),
@@ -202,7 +229,7 @@ l1_summarized <- map(l1, function(df) {
   df %>%
     filter(!is.na(response)) %>%
     mutate(score = likert_lookup[response]) %>%
-    group_by(barrier) %>%
+    group_by(ecosystem_service) %>%
     summarize(
       n = n(),
       mean_score = mean(score),
@@ -226,7 +253,7 @@ l1_summarized <- map(l1, function(df) {
 
 # n respondents - includes NA --------------
 d0c<-d0%>%
-  group_by(barrier)%>%
+  group_by(ecosystem_service)%>%
   summarize(
     n=n())%>%
   glimpse() 
@@ -234,7 +261,7 @@ d0c<-d0%>%
 
 # responses - includes NA --------------
 d0d<-d0%>%
-  group_by(barrier,response)%>%
+  group_by(ecosystem_service,response)%>%
   summarize(
     n_val=n())%>%
   mutate(pct=round(n_val/d0c$n[1],3))%>%
@@ -243,7 +270,7 @@ d0d<-d0%>%
 # n respondents - no NA --------------
 d0e<-d0%>%
   filter(!is.na(response))%>%
-  group_by(barrier)%>%
+  group_by(ecosystem_service)%>%
   summarize(
     n_tot=n())%>%
   glimpse() 
@@ -251,7 +278,7 @@ d0e<-d0%>%
 # responses - no NA --------------
 d0f<-d0%>%
   filter(!is.na(response))%>%
-  group_by(barrier,response)%>%
+  group_by(ecosystem_service,response)%>%
   summarize(
     n_val=n())%>%
   full_join(d0e)%>%
@@ -285,13 +312,13 @@ neutral_rows <- d0g0 %>% filter(response == "Neutral") %>% mutate(pct2 = -pct2)
 d0g2 <- bind_rows(d0g0, neutral_rows)
 
 d0g <- d0g2 %>%
-  group_by(barrier) %>%
+  group_by(ecosystem_service) %>%
   mutate(
     # Sum only the positive agreement sides to order your chart cleanly
     overall = sum(pct2[pct2 > 0]) 
   ) %>%
   ungroup() %>%
-  mutate(barrier = reorder(barrier, overall)) %>%
+  mutate(ecosystem_service = reorder(ecosystem_service, overall)) %>%
   glimpse()
 
 # order
@@ -301,13 +328,13 @@ d0g$response<-ordered(d0g$response, levels = c("Strongly agree", "Agree", "Stron
 ##Order Prompts so the highest level of "Strongly agree" is at the top -------------
 Factor_Order<-d0g[which(d0g$response=="Strongly agree"),]
 Factor_Order<-Factor_Order[order(Factor_Order$pct2),]
-Order<-Factor_Order$barrier
-d0g$barrier <- ordered(d0g$barrier, levels=Order)
+Order<-Factor_Order$ecosystem_service
+d0g$ecosystem_service <- ordered(d0g$ecosystem_service, levels=Order)
 
 # graph -------------------------------------
 source("./bin/deets.R")
 
-ggplot(d0g, aes(y = barrier, x = pct2, fill = response)) + 
+ggplot(d0g, aes(y = ecosystem_service, x = pct2, fill = response)) + 
   # 1. Kept only geom_col (removed duplicate geom_bar)
   geom_col(orientation = 'y', width = 0.6) +
   
@@ -331,7 +358,7 @@ ggplot(d0g, aes(y = barrier, x = pct2, fill = response)) +
   ggtitle("Use and/or experience within ocean and \ncoastal areas:") +
   deets9
 
-ggsave("./doc/q_barrier_state_raw.png", width=12, height=4.5, units="in")
+ggsave("./doc/q_ecosystem_service_state_raw.png", width=12, height=4.5, units="in")
 
 
 
@@ -352,15 +379,15 @@ f1 <- function(df) {
   # 1. Summarize total respondents (no NA)
   d1e <- df %>%
     filter(!is.na(response)) %>%
-    group_by(barrier) %>%
+    group_by(ecosystem_service) %>%
     summarize(n_tot = n(), .groups = "drop")
   
   # 2. Summarize response percentages (no NA)
   d1f <- df %>%
     filter(!is.na(response)) %>%
-    group_by(barrier, response) %>%
+    group_by(ecosystem_service, response) %>%
     summarize(n_val = n(), .groups = "drop") %>%
-    full_join(d1e, by = "barrier") %>%
+    full_join(d1e, by = "ecosystem_service") %>%
     mutate(pct = round(n_val / n_tot, 3))
   
   # Ensure response is a factor with explicit levels
@@ -385,7 +412,7 @@ f1 <- function(df) {
   
   # 4. Calculate overall agreement for standard sorting
   d1g <- d1g2 %>%
-    group_by(barrier) %>%
+    group_by(ecosystem_service) %>%
     mutate(overall = sum(pct2[pct2 > 0])) %>%
     ungroup()
   
@@ -400,11 +427,11 @@ f1 <- function(df) {
     filter(response == "Strongly agree") %>% 
     arrange(pct2)
   
-  d1g$barrier <- ordered(d1g$barrier, levels = factor_order$barrier)
+  d1g$ecosystem_service <- ordered(d1g$ecosystem_service, levels = factor_order$ecosystem_service)
   
   # Graph 
 #   # Dynamically including the Group Name in the title
-#   p <- ggplot(d1g, aes(y = barrier, x = pct2, fill = response)) + 
+#   p <- ggplot(d1g, aes(y = ecosystem_service, x = pct2, fill = response)) + 
 #     geom_col(orientation = 'y', width = 0.6) +
 #     scale_fill_manual(
 #       values = c(
@@ -427,7 +454,7 @@ f1 <- function(df) {
 #   
 #   # Dynamic File Saving
 #   # Converts "SD_South_County" to a clean filename component
-#   clean_filename <- paste0("./doc/q13_barrier_fg_", tolower(group_name), ".png")
+#   clean_filename <- paste0("./doc/q_es_fg_", tolower(group_name), ".png")
 #   ggsave(clean_filename, plot = p, width = 12, height = 4.5, units = "in")
 #   
 #   # Return the plot object silently in case you want to view it in R
@@ -460,15 +487,15 @@ f2 <- function(df) {
   # 1. Summarize total respondents (no NA)
   d1e <- df %>%
     filter(!is.na(response)) %>%
-    group_by(barrier) %>%
+    group_by(ecosystem_service) %>%
     summarize(n_tot = n(), .groups = "drop")
   
   # 2. Summarize response percentages (no NA)
   d1f <- df %>%
     filter(!is.na(response)) %>%
-    group_by(barrier, response) %>%
+    group_by(ecosystem_service, response) %>%
     summarize(n_val = n(), .groups = "drop") %>%
-    full_join(d1e, by = "barrier") %>%
+    full_join(d1e, by = "ecosystem_service") %>%
     mutate(pct = round(n_val / n_tot, 3))
   
   d1f$response <- factor(
@@ -492,7 +519,7 @@ f2 <- function(df) {
   
   # 4. Calculate overall agreement for standard sorting
   d1g <- d1g2 %>%
-    group_by(barrier) %>%
+    group_by(ecosystem_service) %>%
     mutate(overall = sum(pct2[pct2 > 0])) %>%
     ungroup()
   
@@ -506,15 +533,15 @@ f2 <- function(df) {
   # arranging them in ascending order puts the biggest disagreement at the top.
   factor_order_disagree <- d1g %>% 
     filter(response %in% c("Strongly disagree", "Disagree")) %>% 
-    group_by(barrier) %>% 
+    group_by(ecosystem_service) %>% 
     summarize(total_disagreement = sum(pct2), .groups = "drop") %>% 
     arrange(desc(total_disagreement))
   
-  # Apply the flipped order to your barrier factor
-  d1g$barrier <- ordered(d1g$barrier, levels = factor_order_disagree$barrier)
+  # Apply the flipped order to your ecosystem_service factor
+  d1g$ecosystem_service <- ordered(d1g$ecosystem_service, levels = factor_order_disagree$ecosystem_service)
   
   # 6. Graph Generation
-  p <- ggplot(d1g, aes(y = barrier, x = pct2, fill = response)) + 
+  p <- ggplot(d1g, aes(y = ecosystem_service, x = pct2, fill = response)) + 
     geom_col(orientation = 'y', width = 0.6) +
     scale_fill_manual(
       values = c(
@@ -536,7 +563,7 @@ f2 <- function(df) {
     deets9
   
   # 7. Dynamic File Saving (Appends '_disagreement' to the filename)
-  clean_filename <- paste0("./doc/q_barrier_fg_raw_", tolower(group_name), "_disagreement.png")
+  clean_filename <- paste0("./doc/q_ecosystem_service_fg_raw_", tolower(group_name), "_disagreement.png")
   ggsave(clean_filename, plot = p, width = 12, height = 4.5, units = "in")
   
   return(p)

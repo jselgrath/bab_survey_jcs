@@ -27,7 +27,7 @@ unique(d1$QActual_Time)
 
 names(d1)
 
-levels(factor(d1$ q_demographic_race)) # check race categories
+levels(factor(d1$q_demographic_race)) # check race categories
 
 
 # organizing activity categories
@@ -80,7 +80,7 @@ unique(d3$QImportant_Activities_Most2)
 
 # -- select Activity and Frequency questions, plus demographics --
 d5<-d1%>%
-  select(response_id,QDesired_Time,QActual_Time,QImportant_Activities_Most2, q_demographic_race,QDemographic_Birth,QDemographic_Income,QDemographic_Swimming,QDemographic_Gender,QDemographic_PrimaryZip,q_demographic_education_clean,EJ_Bin,influencer_most_b:fishing_most_b)%>%
+  select(response_id,QDesired_Time,QActual_Time,QImportant_Activities_Most2, q_demographic_race,QDemographic_Birth,QDemographic_Income,QDemographic_Swimming,q_demographic_gender,QDemographic_PrimaryZip,q_demographic_education_clean,EJ_Bin,influencer_most_b:fishing_most_b)%>%
   filter(QImportant_Activities_Most2!="Choose not to answer") %>%
   glimpse()
 

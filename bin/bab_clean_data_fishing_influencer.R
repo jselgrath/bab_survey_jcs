@@ -3,12 +3,12 @@
 # California Marine Sanctuary Foundation
 
 # goal: graph activity data
+# influencer_any_b = final influencer variable - influencer period (2024-09-05 to 2024-11-04) online samples that they fish
 
 # ----------------------------------------------------------
 # load libraries ######-------------------------------------
 library(tidyverse)
 library(scales)
-library(colorspace)
 library(lubridate)
 
 # assign binary variable to fishing as most important activity from online surveys 2024-09-05 to 2024-11-04 based on influencer
@@ -72,7 +72,7 @@ d1 <- read_csv("./results/data_long7.csv") %>%
     )
   ) %>%
   
-  # 3. fishing is activity during any time period
+  # fishing is activity during any time period
   mutate(
     fishing_any_b = if_else(
       str_detect(QImportant_Activities2, fixed("fishing", ignore_case = TRUE)) | 
@@ -81,7 +81,7 @@ d1 <- read_csv("./results/data_long7.csv") %>%
     )
   ) %>%
   
-  # 4. fishing is most important activity during any time period
+  # fishing is most important activity during any time period
   mutate(
     fishing_most_b = if_else(
       str_detect(QImportant_Activities_Most, fixed("fishing", ignore_case = TRUE)),
@@ -110,7 +110,7 @@ fishing_summary_table <- bind_rows(
   
   # All Respondents
   d1 %>%
-    select(fishing_any_b, fishing_most_b) %>%
+    dplyr::select(fishing_any_b, fishing_most_b) %>%
     pivot_longer(cols = everything(), names_to = "Variable", values_to = "Status") %>%
     group_by(Variable) %>%
     summarise(n = sum(Status == 1, na.rm = TRUE), total = n(), Group = "All Responses - Any Mechanism"),
@@ -118,7 +118,7 @@ fishing_summary_table <- bind_rows(
   # removed influencer data - any fishing - online only
     d1 %>%
     filter(influencer_any_b!=1) %>%
-    select(fishing_any_b, fishing_most_b) %>%
+    dplyr::select(fishing_any_b, fishing_most_b) %>%
     pivot_longer(cols = everything(), names_to = "Variable", values_to = "Status") %>%
     group_by(Variable) %>%
     summarise(n = sum(Status == 1, na.rm = TRUE), total = n(), Group = "Removed Influencer - Any Fishing - Online"),
@@ -126,7 +126,7 @@ fishing_summary_table <- bind_rows(
   # removed influencer data - most important fishing - online only
   d1 %>%
     filter(influencer_most_b!=1) %>%
-    select(fishing_any_b, fishing_most_b) %>%
+    dplyr::select(fishing_any_b, fishing_most_b) %>%
     pivot_longer(cols = everything(), names_to = "Variable", values_to = "Status") %>%
     group_by(Variable) %>%
     summarise(n = sum(Status == 1, na.rm = TRUE), total = n(), Group = "Removed Influencer - Most important fishing - Online"),
@@ -135,7 +135,7 @@ fishing_summary_table <- bind_rows(
   # Influencer Period Only - online
   d1 %>%
     filter(influencer_any_b==1) %>%
-    select(influencer_any_b, influencer_most_b) %>%
+    dplyr::select(influencer_any_b, influencer_most_b) %>%
     pivot_longer(cols = everything(), names_to = "Variable", values_to = "Status") %>%
     group_by(Variable) %>%
     summarise(n = sum(Status == 1, na.rm = TRUE), total = n(), Group = "Influencer Period Only - Any Fishing - Online"),
@@ -143,7 +143,7 @@ fishing_summary_table <- bind_rows(
   # # Influencer Period Most Important - any mechanism (online and in person)
   d1 %>%
     filter(influencer_most_b2==1) %>%
-    select(influencer_most_b) %>% #influencer_any_b, 
+    dplyr::select(influencer_most_b) %>% #influencer_any_b, 
     pivot_longer(cols = everything(), names_to = "Variable", values_to = "Status") %>%
     group_by(Variable) %>%
     summarise(n = sum(Status == 1, na.rm = TRUE), total = n(), Group = "Influencer Period Only - Most Important Fishing - Any Mechanism"),
@@ -151,7 +151,7 @@ fishing_summary_table <- bind_rows(
   # # Influencer Period Most Important - online 
   d1 %>%
     filter(influencer_most_b2==1) %>%
-    select(influencer_most_b2) %>% #influencer_any_b, 
+    dplyr::select(influencer_most_b2) %>% #influencer_any_b, 
     pivot_longer(cols = everything(), names_to = "Variable", values_to = "Status") %>%
     group_by(Variable) %>%
     summarise(n = sum(Status == 1, na.rm = TRUE), total = n(), Group = "Influencer Period Only - Most Important Fishing - Online"), 
@@ -159,7 +159,7 @@ fishing_summary_table <- bind_rows(
   # Influencer Period Any mechanism (online and in person)
   d1 %>%
     filter(influencer_any_b2==1) %>%
-    select(influencer_any_b, influencer_most_b) %>%
+    dplyr::select(influencer_any_b, influencer_most_b) %>%
     pivot_longer(cols = everything(), names_to = "Variable", values_to = "Status") %>%
     group_by(Variable) %>%
     
@@ -202,15 +202,22 @@ fishing_summary_table <- bind_rows(
       TRUE ~ Variable
     )
   ) %>%
-  select(Group, Variable_Clean, n, total, percent) %>%
+  dplyr::select(Group, Variable_Clean, n, total, percent) %>%
   arrange(Group, desc(n))%>%
   glimpse()
 
 print(fishing_summary_table) # checked - numbers match
 
 
+# only keep final influencer variable - infleuncer period - any online (influencer_any_b)
+d2<-d1%>%
+  dplyr::select(-influencer_most_b,-influencer_most_b2,-influencer_any_b2)
+  
+  
+  
 # save ---------------
-write_csv(d1,"./results/data_long8.csv")
+write_csv(d1,"./results/data_long8_all_influencer_var.csv") # retains all influencer variables
+write_csv(d2,"./results/data_long8.csv")
 write_csv(fishing_summary_table,"./doc/fishing_influencer_summary.csv")
 
 

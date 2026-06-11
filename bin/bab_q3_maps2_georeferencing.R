@@ -32,7 +32,7 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 d0<-read_csv("./data/bab_q3_map_calculations_20260227.csv")%>%
-  select(-checked_against )%>%
+  dplyr::select(-checked_against )%>%
   glimpse()
 
 unique(d0$map)
@@ -45,14 +45,14 @@ d2<-d1%>%
   unique()%>%
   mutate(x_long=x1+(Final_X*x2_y2_cell_size))%>% # x=((x2_y2_cell_size*sb_s_x)+x1),
   mutate(y_lat=y1-(Final_Y*x2_y2_cell_size))%>% #y=(-(x2_y2_cell_size*sb_s_y)+y1) - same results from both
-  select(-x_calc,-y_calc,-x1,-y1,-x2_y2_cell_size,-map_name,-map_link)%>%
+  dplyr::select(-x_calc,-y_calc,-x1,-y1,-x2_y2_cell_size,-map_name,-map_link)%>%
   glimpse()
 
 names(d2)
 
 # subset for Emily's project about coastal access locations
 d2b<-d2%>%
-  select(response_id,UserLanguage,q_mapping_county,map,QDemographic_PrimaryZip:QDemographic_Swimming, q_demographic_race:q_demographic_education_clean ,EJ_Score:Distance_Binned,Mechanism, Phase,Version, City, State, Primary_County,EJ_Score,EJ_Bin,Distance,Distance_Binned,influencer_any_b,x_long,y_lat)%>%
+  dplyr::select(response_id,UserLanguage,q_mapping_county,map,QDemographic_PrimaryZip:QDemographic_Swimming, q_demographic_race:q_demographic_education_clean ,EJ_Score:Distance_Binned,Mechanism, Phase,Version, City, State, Primary_County,EJ_Score,EJ_Bin,Distance,Distance_Binned,influencer_any_b,x_long,y_lat)%>%
   filter(!is.na(x_long)) %>% #remove surveys with no value
   rename_with(~ str_remove(., "^QDemographic_")) %>%
   rename_with(~ str_remove(., "^q_demographic_")) %>%

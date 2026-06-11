@@ -19,7 +19,7 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # read files
-d1<-read_csv("./results/data_long8.csv")%>%
+d1<-read_csv("./results/data_long8_all_influencer_var.csv")%>%
   glimpse()
 
 unique(d1$Mechanism)
@@ -55,7 +55,7 @@ monthly_breakdown <- d1 %>%
     fishing_most_pct_inperson = if_else(n_In_Person > 0, (fishing_most_n_In_Person / n_In_Person) * 100, 0)
   ) %>%
   
-  select(survey_month, total_n, n_In_Person,n_Online,fishing_any_n_In_Person:fishing_most_pct_inperson) %>%
+  dplyr::select(survey_month, total_n, n_In_Person,n_Online,fishing_any_n_In_Person:fishing_most_pct_inperson) %>%
   arrange(survey_month)
 
 glimpse(monthly_breakdown)
@@ -77,7 +77,7 @@ ggplot(monthly_breakdown, aes(x = survey_month, y = fishing_most_pct_all)) +
 # 1. Prepare data for plotting
 plot_data <- monthly_breakdown %>%
   # Select the columns we want to plot plus the label column
-  select(survey_month, total_n, 
+  dplyr::select(survey_month, total_n, 
          fishing_most_pct_all, 
          fishing_most_pct_online, 
          fishing_most_pct_inperson) %>%

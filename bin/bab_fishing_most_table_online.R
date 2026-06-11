@@ -14,18 +14,17 @@ library(lubridate)
 # --------------------------------------------------------------------------
 # load data -----------------------------------------------------------
 rm(list = ls(all = TRUE))
-# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # read file
-d1<-read_csv("./results/data_long8.csv")%>%
+d1<-read_csv("./results/data_long8_all_influencer_var.csv")%>%
   glimpse()
 
 # start_date
 sd<-20240901
 
 # end_date
-ed<-20241101
+ed<-20241130
 # ed<-20241001
 
 
@@ -60,11 +59,11 @@ monthly_fishing_any_summary <- d1 %>%
     end_date = format(end_date_obj, "%Y%m%d")
   ) %>%
   # 4. Clean up and calculate percentage
-  select(start_date, end_date, responses_n, fishing_n,Mechanism) %>%
+  dplyr::select(start_date, end_date, responses_n, fishing_n,Mechanism) %>%
   mutate(fishing_pct = fishing_n / responses_n,
          fishing_type="any_activity",
          mechanism=Mechanism) %>%
-  select(-Mechanism)%>%
+  dplyr::select(-Mechanism)%>%
   arrange(start_date)
 
 # View the monthly result
@@ -84,25 +83,25 @@ summary_all <- monthly_fishing_any_summary %>%
   )
 
 # grand mean - without sept and oct 2024
-summary_no_aw <- monthly_fishing_any_summary %>%
+summary_no_influencer <- monthly_fishing_any_summary %>%
   filter(start_date != sd & start_date != ed) %>%
   summarize(
-    responses_n_no_aw = sum(responses_n),
-    fishing_n_no_aw = sum(fishing_n),
-    fishing_pct_no_aw = fishing_n_no_aw / responses_n_no_aw
+    responses_n_no_influencer = sum(responses_n),
+    fishing_n_no_influencer = sum(fishing_n),
+    fishing_pct_no_influencer = fishing_n_no_influencer / responses_n_no_influencer
   )
 
 # grand mean - only sept and oct 2024
-summary_only_aw <- monthly_fishing_any_summary %>%
+summary_only_influencer <- monthly_fishing_any_summary %>%
   filter(start_date == sd | start_date == ed) %>%
   summarize(
-    responses_n_only_aw = sum(responses_n),
-    fishing_n_only_aw = sum(fishing_n),
-    fishing_pct_only_aw = fishing_n_only_aw / responses_n_only_aw
+    responses_n_only_influencer = sum(responses_n),
+    fishing_n_only_influencer = sum(fishing_n),
+    fishing_pct_only_influencer = fishing_n_only_influencer / responses_n_only_influencer
   )
 
 # Combine summaries into one wide table
-monthly_fishing_any_versions <- cbind(summary_all, summary_no_aw, summary_only_aw) %>%
+monthly_fishing_any_versions <- cbind(summary_all, summary_no_influencer, summary_only_influencer) %>%
   mutate(mechanism="Online",
          fishing_type="any_activity")%>%
   glimpse()
@@ -143,11 +142,11 @@ monthly_fishing_summary_most <- d1 %>%
     end_date = format(end_date_obj, "%Y%m%d")
   ) %>%
   # 3. Clean up and organize
-  select(start_date, end_date, responses_n, fishing_n,Mechanism) %>%
+  dplyr::select(start_date, end_date, responses_n, fishing_n,Mechanism) %>%
   mutate(fishing_pct=fishing_n/responses_n,
          fishing_type="most_important_activity",
          mechanism="Online")%>%
-  select(-Mechanism)%>%
+  dplyr::select(-Mechanism)%>%
   arrange((start_date))
 
 # View the final result
@@ -173,9 +172,9 @@ monthly_fishing_summary_most1<-monthly_fishing_summary_most %>%
 monthly_fishing_summary_most2<-monthly_fishing_summary_most %>%
   filter(start_date!=sd &start_date!=20241001 &start_date!=ed)%>%
   summarize(
-    responses_n_no_aw = sum(responses_n),
-    fishing_n_no_aw = sum(fishing_n),
-    fishing_pct_no_aw = fishing_n_no_aw/responses_n_no_aw
+    responses_n_no_influencer = sum(responses_n),
+    fishing_n_no_influencer = sum(fishing_n),
+    fishing_pct_no_influencer = fishing_n_no_influencer/responses_n_no_influencer
   )%>%
   glimpse()
 
@@ -184,9 +183,9 @@ monthly_fishing_summary_most2<-monthly_fishing_summary_most %>%
 monthly_fishing_summary_most3<-monthly_fishing_summary_most %>%
   filter(start_date==sd|start_date==20241001|start_date==ed)%>%
   summarize(
-    responses_n_only_aw = sum(responses_n),
-    fishing_n_only_aw = sum(fishing_n),
-    fishing_pct_only_aw = fishing_n_only_aw/responses_n_only_aw
+    responses_n_only_influencer = sum(responses_n),
+    fishing_n_only_influencer = sum(fishing_n),
+    fishing_pct_only_influencer = fishing_n_only_influencer/responses_n_only_influencer
   )%>%
   glimpse()
 
@@ -208,9 +207,9 @@ monthly_fishing_summary_most_versions<-cbind(monthly_fishing_summary_most1,month
 # ---------------------------------------------------------
 # Save 
 # ---------------------------------------------------------
-write_csv(monthly_fishing_any_summary, "./doc/activity_fishing_any_monthly_online.csv")
-write_csv(monthly_fishing_any_versions, "./doc/activity_fishing_any_summaries_online.csv")
+write_csv(monthly_fishing_any_summary, "./doc/q_activity_fishing_any_monthly_online.csv")
+write_csv(monthly_fishing_any_versions, "./doc/q_activity_fishing_any_summaries_online.csv")
 
-write_csv(monthly_fishing_summary_most,"./doc/activity_fishing_most_monthly_online.csv")
-write_csv(monthly_fishing_summary_most_versions,"./doc/activity_fishing_most_summaries_online.csv")
+write_csv(monthly_fishing_summary_most,"./doc/q_activity_fishing_most_monthly_online.csv")
+write_csv(monthly_fishing_summary_most_versions,"./doc/q_activity_fishing_most_summaries_online.csv")
 

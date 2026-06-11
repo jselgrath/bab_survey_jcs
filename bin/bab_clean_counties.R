@@ -57,12 +57,12 @@ d2<-d1%>%
     tolower(q_mapping_county) == "del norte"     ~ "del norte",
     TRUE ~ NA_character_
   ))%>%
-  select(-QMapping_North_County, -QMapping_Central_County, -QMapping_South_County)%>%
+  dplyr::select(-QMapping_North_County, -QMapping_Central_County, -QMapping_South_County)%>%
   glimpse()
 
 # check - # NAs that are left are real NAs
 filter(d2,!is.na(Final_X))%>%
-  select(q_mapping_county,map,Final_X,Final_Y) #QMapping_North_County,QMapping_Central_County,QMapping_South_County,
+  dplyr::select(q_mapping_county,map,Final_X,Final_Y) #QMapping_North_County,QMapping_Central_County,QMapping_South_County,
 
 
 
