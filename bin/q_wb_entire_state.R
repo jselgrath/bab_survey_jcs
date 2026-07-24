@@ -176,5 +176,5 @@ ggplot(d00b, aes(y = reorder(wellbeing, centered_mean), x = centered_mean)) +
 
 
 # Save ---------
-ggsave("./doc/q_wb_california_centered_no_influencer.png", width = 12, height = 4.5, units = "in")
+ggsave("./doc/q_wb_california_centered_no_influencer.png", width = 12, height = 6, units = "in")
 # ggsave("./doc/q_wb_california_centered_influencer.png", width = 12, height = 4.5, units = "in")

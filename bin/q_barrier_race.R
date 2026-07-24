@@ -2,63 +2,46 @@
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation
 
-# goal: summarizing q13 barrier question for 2026 focus groups with mean and SEM, and stats
+# goal: barriers by race
 
-# "centering" for a Mean/SEM plot usually means converting the categories to numeric scores (e.g., 1 to 5), calculating the grand mean of the entire dataset (d0), 
-# and subtracting that grand mean from your focus group (d1) means. This centers the focus group graphs perfectly around the global average baseline.
-
-# NOTE NEED TO CHECK OUTLIERS ETC
-
-# ----------------------------------------------------------
-# load libraries ######-------------------------------------
+# ----------------------------------
 library(tidyverse)
-library(ggplot2)
-library(stringr)
-library(dplyr)
-library(tidyr)
-library(likert) 
-library(colorspace)
-library(purrr)
-library(readr)
-library(lme4)
-library(lmerTest) # p-values
+library(lmerTest) 
 library(emmeans)
-library(multcomp)
-library(multcompView)
+library(ggplot2)
 
-# ---------------------------------------------------------
 
-# ---------------------------------------------------------
-# load data and setups
-# ---------------------------------------------------------
 # ===========================================================================
 # load data and setups
 # ===========================================================================
 rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
-source("./bin/deets.R")
-library(tidyverse)
-library(lmerTest)  # Essential: This ensures standard anova() yields Satterthwaite p-values
-library(emmeans)
+
+source("./bin/deets.R") # graphing
 
 ### Load in Data files -------------------
-d0 <- read_csv("./results/q13_barrier_long.csv") %>% glimpse()
-d1 <- read_csv("./results/q13_barrier_long_fg.csv") %>% glimpse()
 
-# check counts
-fg_respondent_counts <- d1 %>%
-  filter(!is.na(response)) %>%
-  group_by(Focus_Group) %>%
-  summarize(
-    total_respondents = n_distinct(ResponseId),
-    total_ratings = n(),
-    .groups = "drop"
-  ) %>%
-  arrange(Focus_Group)%>%
-  # arrange(desc(total_respondents))%>%
+d0_raw <- read_csv("./results/q13_barrier_long.csv") %>% 
+  filter(influencer_any_b!=1)%>%
   glimpse()
 
-print(fg_respondent_counts)
+
+
+# Explode multi-select race so multi-race respondents count in each chosen race
+d0 <- d0_raw %>%
+  mutate(q_demographic_race = as.character(q_demographic_race)) %>%
+  tidyr::separate_rows(q_demographic_race, sep = ",") %>%
+  mutate(q_demographic_race = stringr::str_trim(q_demographic_race)) %>%
+  filter(
+    !is.na(q_demographic_race), 
+    q_demographic_race != "",
+    !q_demographic_race %in% c("Choose not to answer")
+  ) %>%
+  # Deduplicate to ensure a respondent only counts once per unique barrier-race combo
+  distinct(ResponseId, q_demographic_race, barrier, response, .keep_all = TRUE) %>%
+  glimpse()
+
+
 
 # Convert likert to numerical (Standardized)
 likert_lookup <- c(
@@ -76,12 +59,13 @@ global_mean <- d0 %>%
   summarize(grand_mean = mean(score, na.rm = TRUE)) %>%
   pull(grand_mean)
 
-# Split community focus groups into list l1
-fg <- unique(d1$Focus_Group)
-l1 <- d1 %>%
-  filter(Focus_Group %in% fg) %>%
-  group_split(Focus_Group) %>%
-  set_names(., map_chr(., ~unique(.x$Focus_Group)))
+# 2. Split data by Race into list l_race -----------------------------
+race_col <- "q_demographic_race" 
+
+l_race <- d0 %>%
+  filter(!is.na(get(race_col))) %>%
+  group_split(get(race_col)) %>%
+  set_names(., map_chr(., ~unique(.x[[race_col]])))
 
 # ===========================================================================
 # Core Function: Calculate Deviation, Run Statistics, and Plot Subsets
@@ -90,13 +74,15 @@ plot_deviation_subset <- function(df, global_baseline, is_list_element = TRUE) {
   
   # 1. Determine group name for titles and file paths
   if (is_list_element) {
-    group_name <- unique(df$Focus_Group)[1]
-    if (is.na(group_name)) group_name <- "Unknown_Group"
+    # Dynamically grab the race/demographic group name
+    group_name <- unique(df[[race_col]])[1]
+    if (is.na(group_name)) group_name <- "Unknown_Race"
     title_text <- paste0("Ocean Barriers: ", group_name, " Deviation")
-    file_suffix <- paste0("_fg_", tolower(gsub(" ", "_", group_name)))
+    # Clean up file suffix name for saving (removes special characters/spaces)
+    file_suffix <- paste0("_race_", tolower(gsub("[^[:alnum:]]", "_", group_name)))
   } else {
-    title_text <- "Barriers to Ocean Access in California"
-    file_suffix <- "statewide"
+    title_text = "Barriers to Ocean Access in California (Statewide Baseline)"
+    file_suffix = "_statewide"
   }
   
   # 2. STATS - Filter and Convert responses to numeric format
@@ -161,7 +147,7 @@ plot_deviation_subset <- function(df, global_baseline, is_list_element = TRUE) {
     # Red baseline representing overall State Mean
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey64", linewidth = 0.8) + 
     
-    # Horizontal error bar syntax using orientation = "y" to clear up deprecation warnings
+    # Horizontal error bar syntax using orientation = "y"
     geom_errorbar(
       aes(xmin = ymin, xmax = ymax), 
       orientation = "y",
@@ -185,7 +171,7 @@ plot_deviation_subset <- function(df, global_baseline, is_list_element = TRUE) {
     labs(
       title = title_text,
       subtitle = paste0(stats_subtitle, "\nShared letters indicate no significant difference (Tukey HSD, p < 0.05)"),
-      x = "Deviation from Mean Likert Score",
+      x = "Group Deviation from Statewide Mean Likert Score",
       y = ""
     ) +
     # Expand x-axis slightly so letters don't get clipped off the edge
@@ -194,7 +180,7 @@ plot_deviation_subset <- function(df, global_baseline, is_list_element = TRUE) {
     deets9 
   
   # 8. Save the output plot
-  clean_filename <- paste0("./doc/q_barrier_", file_suffix, "_deviation_with_stats.png")
+  clean_filename <- paste0("./doc/q_barrier_race_", file_suffix, "_deviation_with_stats_no_infl.png")
   ggsave(clean_filename, plot = p, width = 11, height = 5, units = "in")
   
   return(p)
@@ -204,8 +190,8 @@ plot_deviation_subset <- function(df, global_baseline, is_list_element = TRUE) {
 # Execution
 # ===========================================================================
 
-# 1. Process and save the Statewide dataset with its statistics
+# 1. Process and save the Statewide dataset with its statistics for reference
 plot_deviation_subset(d0, global_baseline = global_mean, is_list_element = FALSE)
 
-# 2. Automatically loop through every individual focus group split and generate graphs
-walk(l1, ~plot_deviation_subset(.x, global_baseline = global_mean, is_list_element = TRUE))
+# 2. Automatically loop through every individual Race split and generate graphs
+walk(l_race, ~plot_deviation_subset(.x, global_baseline = global_mean, is_list_element = TRUE))

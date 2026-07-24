@@ -1,6 +1,6 @@
-# Equity in Ocean Access (Benefits and Barriers (bab))
+# California Ocean Access: Benefits and wellbeings (bab)
 # Jennifer Selgrath 
-# California Marine Sanctuary Foundation/ CINMS
+# California Marine Sanctuary Foundation
 
 # goal: subset cleaned data for graphing and making long version - wellbeing
 

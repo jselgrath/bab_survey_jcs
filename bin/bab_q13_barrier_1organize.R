@@ -68,11 +68,6 @@ d1<-read_csv("./results/data_long9_fg.csv")%>%
 names(d1)
 d1
 
-# focus group list version
-l1<- read_rds("./results/data_long9_fg.rds")
-l1$Santa_Rosa
-
-
 # wide to long - fg
 d2 <- d1 %>%
     pivot_longer(

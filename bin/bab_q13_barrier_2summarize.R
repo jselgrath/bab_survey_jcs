@@ -39,9 +39,10 @@ d1<-read_csv("./results/q13_barrier_long_fg.csv")%>%
   glimpse()
 names(d1)
 
-# focus group list version - have not made this yet
-# l1<- read_rds("./results/q13_barrier_long_fg.rds")
-# l1$Santa_Rosa
+# Split d1 into a named list of data frames by Focus_Group
+l1 <- d1 %>% 
+  group_split(Focus_Group) %>% 
+  set_names(unique(d1$Focus_Group))
 
 # ---------------------------------------------------------------
 # convert likert to numerical
@@ -162,7 +163,7 @@ ggplot(d00b, aes(y = reorder(barrier, centered_mean), x = centered_mean)) +
 
 
 # Save ---------
-# ggsave("./doc/q_barrier_all_centered.png", width = 12, height = 4.5, units = "in")
+ggsave("./doc/q_barrier_all_centered.png", width = 12, height = 4.5, units = "in")
 
 
 
@@ -262,7 +263,6 @@ unique(d0f$response)
 
 # -----------------------------------------------
 # prep for graphing ------------------------------
-source("./bin/deets.R")
 
 
 # # order factors ---------------------------
@@ -305,8 +305,6 @@ Order<-Factor_Order$barrier
 d0g$barrier <- ordered(d0g$barrier, levels=Order)
 
 # graph -------------------------------------
-source("./bin/deets.R")
-
 ggplot(d0g, aes(y = barrier, x = pct2, fill = response)) + 
   # 1. Kept only geom_col (removed duplicate geom_bar)
   geom_col(orientation = 'y', width = 0.6) +
@@ -349,13 +347,13 @@ f1 <- function(df) {
   group_name <- unique(df$Focus_Group)[1]
   if (is.na(group_name)) group_name <- "Unknown_Group"
   
-  # 1. Summarize total respondents (no NA)
+  # Summarize total respondents (no NA)
   d1e <- df %>%
     filter(!is.na(response)) %>%
     group_by(barrier) %>%
     summarize(n_tot = n(), .groups = "drop")
   
-  # 2. Summarize response percentages (no NA)
+  # Summarize response percentages (no NA)
   d1f <- df %>%
     filter(!is.na(response)) %>%
     group_by(barrier, response) %>%
@@ -369,7 +367,7 @@ f1 <- function(df) {
     levels = c("Strongly agree", "Agree", "Neutral", "Disagree", "Strongly disagree")
   )
   
-  # 3. Prep for Likert divergent graphing (handling the split Neutral)
+  # Prep for Likert divergent graphing (handling the split Neutral)
   d1g0 <- d1f %>%
     mutate(
       pct2 = case_when(
@@ -383,7 +381,7 @@ f1 <- function(df) {
   neutral_rows <- d1g0 %>% filter(response == "Neutral") %>% mutate(pct2 = -pct2)
   d1g2 <- bind_rows(d1g0, neutral_rows)
   
-  # 4. Calculate overall agreement for standard sorting
+  # Calculate overall agreement for standard sorting
   d1g <- d1g2 %>%
     group_by(barrier) %>%
     mutate(overall = sum(pct2[pct2 > 0])) %>%
@@ -395,7 +393,7 @@ f1 <- function(df) {
     levels = c("Strongly agree", "Agree", "Strongly disagree", "Disagree", "Neutral")
   )
   
-  # 5. Order items so highest "Strongly agree" is at the top
+  # Order items so highest "Strongly agree" is at the top
   factor_order <- d1g %>% 
     filter(response == "Strongly agree") %>% 
     arrange(pct2)
@@ -403,39 +401,37 @@ f1 <- function(df) {
   d1g$barrier <- ordered(d1g$barrier, levels = factor_order$barrier)
   
   # Graph 
-#   # Dynamically including the Group Name in the title
-#   p <- ggplot(d1g, aes(y = barrier, x = pct2, fill = response)) + 
-#     geom_col(orientation = 'y', width = 0.6) +
-#     scale_fill_manual(
-#       values = c(
-#         "Strongly agree"    = "#002F70", 
-#         "Agree"             = "#879FDB", 
-#         "Neutral"           = "grey50", 
-#         "Disagree"          = "#DA8A8B", 
-#         "Strongly disagree" = "#5F1415"
-#       ),
-#       breaks = c('Strongly agree', 'Agree', 'Neutral', 'Disagree', "Strongly disagree"),
-#       name = ""
-#     ) +
-#     geom_vline(xintercept = 0) +
-#     xlab("% of Respondents") + 
-#     ylab("") +
-#     xlim(c(-1, 1)) +
-#     theme_bw() + 
-#     ggtitle(paste0("Use and/or experience within ocean and \ncoastal areas in ", group_name, ":")) +
-#     deets9
-#   
-#   # Dynamic File Saving
-#   # Converts "SD_South_County" to a clean filename component
-#   clean_filename <- paste0("./doc/q13_barrier_fg_", tolower(group_name), ".png")
-#   ggsave(clean_filename, plot = p, width = 12, height = 4.5, units = "in")
-#   
-#   # Return the plot object silently in case you want to view it in R
-#   return(p)
-# }
+  # Dynamically including the Group Name in the title
+  p <- ggplot(d1g, aes(y = barrier, x = pct2, fill = response)) +
+    geom_col(orientation = 'y', width = 0.6) +
+    scale_fill_manual(
+      values = c(
+        "Strongly agree"    = "#002F70",
+        "Agree"             = "#879FDB",
+        "Neutral"           = "grey50",
+        "Disagree"          = "#DA8A8B",
+        "Strongly disagree" = "#5F1415"
+      ),
+      breaks = c('Strongly agree', 'Agree', 'Neutral', 'Disagree', "Strongly disagree"),
+      name = ""
+    ) +
+    geom_vline(xintercept = 0) +
+    xlab("% of Respondents") +
+    ylab("") +
+    xlim(c(-1, 1)) +
+    theme_bw() +
+    ggtitle(paste0("Use and/or experience within ocean and \ncoastal areas in ", group_name, ":")) +
+    deets9
 
+  # Dynamic File Saving
+  # Converts "SD_South_County" to a clean filename component
+  clean_filename <- paste0("./doc/q13_barrier_fg_", tolower(group_name), ".png")
+  ggsave(clean_filename, plot = p, width = 12, height = 4.5, units = "in")
 
-source("./bin/deets.R")
+  # Return the plot object silently in case you want to view it in R
+  return(p)
+}
+
 
 # 2. Run the function automatically across every data frame in your list `l1`
 # walk(l1, f1)

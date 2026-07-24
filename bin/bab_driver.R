@@ -204,6 +204,7 @@ source("./bin/q_econ_subset.R")
 # FOCUS GROUPS
 
 # subsets for specific focus groups ----------------
+# also has code to pull emails for outreach in Humboldt and Del Norte counties
 source("./bin/bab_fg_neighborhood_subsets.R")
 # input:       ./data/bab_fg_zip_codes_ALL_ZIP_20260527.csv
 #              ./results/data_long9.csv
@@ -221,26 +222,29 @@ source("./bin/bab_q13_barrier_1organize.R")
 # output:      ./results/q13_barrier_long_fg.csv
 #              ./results/q13_barrier_long.csv
 
-source("./bab_q13_barrier_summarize.R")
+source("./bab_q13_barrier_2summarize.R")
 # input:       ./results/q13_barrier_long_fg.csv
 #              ./results/q13_barrier_long.csv            
-# output:   
-#              
+# output:      ./doc/q_barrier_all_centered.png
+#              ./doc/q_barrier_state_raw.png
+#              ./doc/q_barrier_fg_raw_", tolower(group_name), "_disagreement.png"
+#              ./doc/q_barrier_fg_raw_", tolower(group_name), "_disagreement.png"
 
 source("./bin/q_barrier_entire_state.R")
-# input:   
-#              
+# input:    ./results/q13_barrier_long.csv
+#           ./results/q13_barrier_long_fg.csv
 # output:   ./doc/q_barrier_california_centered_influencer.png
 #           ./doc/q_barrier_california_centered_no_influencer.png   
 
+# Summarizing q13 barrier question with Means and SEM
 source("./bin/q_barrier_focus_group1.R") # work on labels
-# input:   
-#              
+# input:    ./results/q13_barrier_long.csv
+#           ./results/q13_barrier_long_fg.csv   
 # output:   ./doc/q_barrier", file_suffix, "_mean_sem.png
 
 source("./bin/q_barrier_focus_group.R") 
-# input:   
-#              
+# input:    ./results/q13_barrier_long.csv
+#           ./results/q13_barrier_long_fg.csv            
 # output:   ./doc/q_barrier_fg_", file_suffix, "_deviation_with_stats.png
 #              
 
@@ -253,7 +257,11 @@ source("./bin/q_barrier_county.R")
 # input:   
 #              
 # output:   
-#      
+#     
+
+# used for tribal focus groups in san diego
+source("./bin/q_barrier_race_sd.R")
+# input: ./results/q13_barrier_long.csv
 
 source("./bin/q_management_priorities.R")#  "./bin/taylor_08.20.2025_demographic&UserData.R")
 # input:   
@@ -302,6 +310,8 @@ source("./bin/q_es_focus_group1.R")
 # output:   
 #      
 
+# wellbeing --------------------
+source("./bin/q_wb_1organize.R")
 # input:   
 #              
 # output:   

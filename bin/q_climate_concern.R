@@ -136,7 +136,7 @@ d2 <- d1 %>%
   pivot_longer(
     cols = QClimate_Obs_S_1:QClimate_Conc_E_7,
     names_to = "question",
-    values_to = "response"
+    values_to = "response_cc"
   ) %>%
   left_join(cc3, by = "question")%>%
   glimpse()
@@ -147,7 +147,7 @@ d3 <- d0 %>%
   pivot_longer(
     cols = QClimate_Obs_S_1:QClimate_Conc_E_7,
     names_to = "question",
-    values_to = "response"
+    values_to = "response_cc"
   ) %>%
   left_join(cc3, by = "question")%>%
   glimpse()
@@ -157,7 +157,7 @@ d3 <- d0 %>%
 write_csv(d2,"./results/q_cc_long_fg.csv")
 write_csv(d3,"./results/q_cc_long.csv")
 
-
+unique(d2$response_cc)
 
 # Question list ##### -------------------------------------------
 # Q1: time desired

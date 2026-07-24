@@ -2,7 +2,7 @@
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation
 
-# Goal: Summarizing q13 barrier question with Means and SEM
+# Goal: Summarizing q13 barrier question with Means and SEM (no stats)
 
 # load libraries ######-------------------------------------
 library(tidyverse)
@@ -32,7 +32,7 @@ l1 <- d1 %>%
 # ---------------------------------------------------------------------------
 plot_mean_sem <- function(df, is_list_element = TRUE) {
   
-  # 1. Determine group name for titles and file paths
+  # Determine group name for titles and file paths
   if (is_list_element) {
     group_name <- unique(df$Focus_Group)[1]
     if (is.na(group_name)) group_name <- "Unknown_Group"
@@ -43,8 +43,8 @@ plot_mean_sem <- function(df, is_list_element = TRUE) {
     file_suffix <- "_statewide"
   }
   
-  # 2. Convert Likert scale responses to numeric values (1 to 5)
-  # Adjust the mapping depending on whether you want 5 to mean "High Barrier" or "Strongly Agree"
+  # Convert Likert scale responses to numeric values (1 to 5)
+  # Adjust the mapping: 5 to mean "High Barrier" or "Strongly Agree"
   df_numeric <- df %>%
     filter(!is.na(response)) %>%
     mutate(
@@ -59,7 +59,7 @@ plot_mean_sem <- function(df, is_list_element = TRUE) {
     ) %>%
     filter(!is.na(score))
   
-  # 3. Calculate Mean, SD, N, and SEM per barrier
+  # Calculate Mean, SD, N, and SEM per barrier
   df_stats <- df_numeric %>%
     group_by(barrier) %>%
     summarize(
@@ -72,7 +72,7 @@ plot_mean_sem <- function(df, is_list_element = TRUE) {
     # Order barriers so the highest mean score sits at the top of the y-axis
     mutate(barrier = reorder(barrier, mean_val))
   
-  # 4. Generate the Point + Error Bar Plot
+  # Generate the Point + Error Bar Plot
   p <- ggplot(df_stats, aes(x = mean_val, y = barrier)) +
     # Draw a subtle reference line at the neutral score (3)
     geom_vline(xintercept = 3, linetype = "dashed", color = "grey60") +
@@ -97,7 +97,7 @@ plot_mean_sem <- function(df, is_list_element = TRUE) {
     theme_bw() +
     deets9 # Keeps your custom theme components
   
-  # 5. Save the output plot
+  # Save the output plot
   clean_filename <- paste0("./doc/q_barrier", file_suffix, "_mean_sem.png")
   ggsave(clean_filename, plot = p, width = 10, height = 5, units = "in")
   
@@ -107,10 +107,9 @@ plot_mean_sem <- function(df, is_list_element = TRUE) {
 # ---------------------------------------------------------------------------
 # Execution
 # ---------------------------------------------------------------------------
-source("./bin/deets.R")
 
-# 1. Process and save the Statewide data (d0)
+# Process and save the Statewide data (d0)
 plot_mean_sem(d0, is_list_element = FALSE)
 
-# 2. Automatically loop through and save plots for all community subsets (l1)
+# Automatically loop through and save plots for all community subsets (l1)
 walk(l1, ~plot_mean_sem(.x, is_list_element = TRUE))
