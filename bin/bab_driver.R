@@ -206,7 +206,7 @@ source("./bin/q_econ_subset.R")
 # subsets for specific focus groups ----------------
 # also has code to pull emails for outreach in Humboldt and Del Norte counties
 source("./bin/bab_fg_neighborhood_subsets.R")
-# input:       ./data/bab_fg_zip_codes_ALL_ZIP_20260527.csv
+# input:       ./data/bab_fg_zip_codes_ALL_ZIP_20260724.csv
 #              ./results/data_long9.csv
 # output:      ./results/data_long9_fg.csv
 #              ./results/data_long9_fg.rds          # list file
@@ -222,7 +222,7 @@ source("./bin/bab_q13_barrier_1organize.R")
 # output:      ./results/q13_barrier_long_fg.csv
 #              ./results/q13_barrier_long.csv
 
-source("./bab_q13_barrier_2summarize.R")
+source("./bin/bab_q13_barrier_2summarize.R")
 # input:       ./results/q13_barrier_long_fg.csv
 #              ./results/q13_barrier_long.csv            
 # output:      ./doc/q_barrier_all_centered.png
@@ -242,6 +242,7 @@ source("./bin/q_barrier_focus_group1.R") # work on labels
 #           ./results/q13_barrier_long_fg.csv   
 # output:   ./doc/q_barrier", file_suffix, "_mean_sem.png
 
+# Summarizing q13 barrier question with Means and SEM and stats
 source("./bin/q_barrier_focus_group.R") 
 # input:    ./results/q13_barrier_long.csv
 #           ./results/q13_barrier_long_fg.csv            
@@ -261,6 +262,10 @@ source("./bin/q_barrier_county.R")
 
 # used for tribal focus groups in san diego
 source("./bin/q_barrier_race_sd.R")
+# input: ./results/q13_barrier_long.csv
+
+# used for african american focus groups in la
+source("./bin/q_barrier_race_la.R")
 # input: ./results/q13_barrier_long.csv
 
 source("./bin/q_management_priorities.R")#  "./bin/taylor_08.20.2025_demographic&UserData.R")

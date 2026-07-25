@@ -23,7 +23,7 @@ source("./bin/deets.R") # graphing
 
 d0_raw <- read_csv("./results/q13_barrier_long.csv") %>% 
   filter(influencer_any_b!=1)%>%
-  filter(Primary_County=="San Diego")%>%
+  filter(Primary_County=="Los Angeles")%>%
   glimpse()
 
 unique(d0_raw$Primary_County)
@@ -80,7 +80,7 @@ plot_deviation_subset <- function(df, global_baseline, is_list_element = TRUE) {
     if (is.na(group_name)) group_name <- "Unknown_Race"
     title_text <- paste0("Ocean Barriers: ", group_name, " (San Diego)")
     # Clean up file suffix name for saving (removes special characters/spaces)
-    file_suffix <- paste0("_race_", tolower(gsub("[^[:alnum:]]", "_", group_name)))
+    file_suffix <- paste0(tolower(gsub("[^[:alnum:]]", "_", group_name)))
   } else {
     title_text = "Barriers to Ocean Access in San Diego (County Baseline)"
     file_suffix = "_race_"
@@ -181,7 +181,7 @@ plot_deviation_subset <- function(df, global_baseline, is_list_element = TRUE) {
     deets9 
   
   # 8. Save the output plot
-  clean_filename <- paste0("./doc/q_barrier", file_suffix, "sd_deviation_with_stats_no_infl.png")
+  clean_filename <- paste0("./doc/q_barrier_race_la_", file_suffix, "_deviation_with_stats_no_infl.png")
   ggsave(clean_filename, plot = p, width = 11, height = 5, units = "in")
   
   return(p)

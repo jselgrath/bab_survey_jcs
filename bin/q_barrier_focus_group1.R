@@ -78,7 +78,7 @@ plot_mean_sem <- function(df, is_list_element = TRUE) {
     geom_vline(xintercept = 3, linetype = "dashed", color = "grey60") +
     
     # Error bars for SEM
-    geom_errorbarh(aes(xmin = mean_val - sem_val, xmax = mean_val + sem_val), 
+    geom_errorbar(aes(xmin = mean_val - sem_val, xmax = mean_val + sem_val), 
                    height = 0.2, color = "#002F70", linewidth = 0.8) +
     
     # Point markers for the mean

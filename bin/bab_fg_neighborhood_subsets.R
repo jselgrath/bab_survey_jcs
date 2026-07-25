@@ -20,7 +20,7 @@ rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 ###Load in Data file
-d0<-read.csv("./data/bab_fg_zip_codes_ALL_ZIP_20260723.csv")%>%  # used for most fg: bab_fg_zip_codes_ALL_ZIP_20260527.csv
+d0<-read.csv("./data/bab_fg_zip_codes_ALL_ZIP_20260724.csv")%>%  # used for most fg: bab_fg_zip_codes_ALL_ZIP_20260527.csv
   mutate(zip_code=ZIP)%>%
   dplyr::select(zip_code,Focus_Group,Approximate_Location)%>%
   unique()%>%
