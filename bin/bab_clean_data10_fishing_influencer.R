@@ -17,13 +17,11 @@ library(lubridate)
 # --------------------------------------------------------------------------
 # load data -----------------------------------------------------------
 rm(list = ls(all = TRUE))
-# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 
 # read file
-d1 <- read_csv("./results/data_long7.csv") %>%
-  mutate(response_id = ResponseId) %>%
+d1 <- read_csv("./results/data_long9.csv") %>%
   
   # during influencer period, fishing is most important activity - online only
   mutate(
@@ -31,7 +29,7 @@ d1 <- read_csv("./results/data_long7.csv") %>%
       date(RecordedDate) >= as.Date("2024-09-05") & 
         date(RecordedDate) <= as.Date("2024-11-04") &
         Mechanism == "Online" &
-        QImportant_Activities_Most2 == "Fishing or collecting food",
+        q_activity_most3 == "Fishing or collecting food",
       1, 0, missing = 0
     )
   ) %>%
@@ -41,10 +39,9 @@ d1 <- read_csv("./results/data_long7.csv") %>%
     influencer_most_b2 = if_else(
       date(RecordedDate) >= as.Date("2024-09-05") & 
         date(RecordedDate) <= as.Date("2024-11-04") &
-        QImportant_Activities_Most2 == "Fishing or collecting food",
+        q_activity_most3 == "Fishing or collecting food",
       1, 0, missing = 0
-    )
-  ) %>%
+    )  ) %>%
   
   # during influencer period, fishing is any important activity  - online only
   mutate(
@@ -52,12 +49,10 @@ d1 <- read_csv("./results/data_long7.csv") %>%
       date(RecordedDate) >= as.Date("2024-09-05") & 
         date(RecordedDate) <= as.Date("2024-11-04") &
         Mechanism == "Online" & (
-          str_detect(QImportant_Activities2, fixed("fishing", ignore_case = TRUE)) | 
-            str_detect(QImportant_Activities_TEXT, fixed("fishing", ignore_case = TRUE))
+          str_detect(q_activity_all3, fixed("fishing", ignore_case = TRUE)) | 
+            str_detect(q_activity_all3, fixed("fishing", ignore_case = TRUE))
         ),
-      1, 0, missing = 0
-    )
-  ) %>%
+      1, 0, missing = 0)  ) %>%
   
   # during influencer period, fishing is any important activity  - all responses
   mutate(
@@ -65,26 +60,21 @@ d1 <- read_csv("./results/data_long7.csv") %>%
       date(RecordedDate) >= as.Date("2024-09-05") & 
         date(RecordedDate) <= as.Date("2024-11-04") &
         (
-          str_detect(QImportant_Activities2, fixed("fishing", ignore_case = TRUE)) | 
-            str_detect(QImportant_Activities_TEXT, fixed("fishing", ignore_case = TRUE))
-        ),
-      1, 0, missing = 0
-    )
-  ) %>%
+          str_detect(q_activity_all3, fixed("fishing", ignore_case = TRUE)) | 
+            str_detect(q_activity_all3, fixed("fishing", ignore_case = TRUE))
+        ),1, 0, missing = 0)) %>%
   
   # fishing is activity during any time period
   mutate(
     fishing_any_b = if_else(
-      str_detect(QImportant_Activities2, fixed("fishing", ignore_case = TRUE)) | 
-        str_detect(QImportant_Activities_TEXT, fixed("fishing", ignore_case = TRUE)),
+      str_detect(q_activity_all3, fixed("fishing", ignore_case = TRUE)), 
       1, 0, missing = 0
-    )
-  ) %>%
+    ))%>%
   
   # fishing is most important activity during any time period
   mutate(
     fishing_most_b = if_else(
-      str_detect(QImportant_Activities_Most, fixed("fishing", ignore_case = TRUE)),
+      str_detect(q_activity_most3, fixed("fishing", ignore_case = TRUE)),
       1, 0, missing = 0
     )
   ) %>%
@@ -209,15 +199,15 @@ fishing_summary_table <- bind_rows(
 print(fishing_summary_table) # checked - numbers match
 
 
-# only keep final influencer variable - infleuncer period - any online (influencer_any_b)
+# only keep final influencer variable - influencer period - any online (influencer_any_b)
 d2<-d1%>%
   dplyr::select(-influencer_most_b,-influencer_most_b2,-influencer_any_b2)
   
   
   
 # save ---------------
-write_csv(d1,"./results/data_long8_all_influencer_var.csv") # retains all influencer variables
-write_csv(d2,"./results/data_long8.csv")
+write_csv(d1,"./results/data_long10_all_influencer_var.csv") # retains all influencer variables
+write_csv(d2,"./results/data_long10.csv")
 write_csv(fishing_summary_table,"./doc/fishing_influencer_summary.csv")
 
 

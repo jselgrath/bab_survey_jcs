@@ -3,7 +3,7 @@
 # California Marine Sanctuary Foundation/ CINMS
 #-------------------------------------
 
-# goal: check georectifying against survey maps
+# goal: move from image coordinates to geographic coordinates
 
 # notes on codes-----------
 # hdn - humboldt del norte
@@ -27,8 +27,6 @@ library(janitor)
 #-------------------------------------
 
 rm(list = ls(all = TRUE))
-# setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
-# setwd("G:/My Drive/research/r_projects/bab_survey_jcs/")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 d0<-read_csv("./data/bab_q3_map_calculations_20260227.csv")%>%
@@ -37,7 +35,7 @@ d0<-read_csv("./data/bab_q3_map_calculations_20260227.csv")%>%
 
 unique(d0$map)
 
-d1<-read_csv("./results/data_long8.csv")%>%# data_long8.csv
+d1<-read_csv("./results/data_long8.csv")%>%
   glimpse()
 
 d2<-d1%>%
@@ -52,7 +50,7 @@ names(d2)
 
 # subset for Emily's project about coastal access locations
 d2b<-d2%>%
-  dplyr::select(response_id,UserLanguage,q_mapping_county,map,QDemographic_PrimaryZip:QDemographic_Swimming, q_demographic_race:q_demographic_education_clean ,EJ_Score:Distance_Binned,Mechanism, Phase,Version, City, State, Primary_County,EJ_Score,EJ_Bin,Distance,Distance_Binned,influencer_any_b,x_long,y_lat)%>%
+  dplyr::select(response_id,UserLanguage,q_mapping_county,map,QDemographic_PrimaryZip:QDemographic_Swimming, q_demographic_race:q_demographic_education ,EJ_Score:Distance_Binned,Mechanism, Phase,Version, City, State, Primary_County,EJ_Score,EJ_Bin,Distance,Distance_Binned,x_long,y_lat)%>%
   filter(!is.na(x_long)) %>% #remove surveys with no value
   rename_with(~ str_remove(., "^QDemographic_")) %>%
   rename_with(~ str_remove(., "^q_demographic_")) %>%
@@ -68,26 +66,26 @@ d2_sf <- st_as_sf(d2b, coords = c("x_long", "y_lat"), crs = 3310)
 
 plot(d2_sf)
 
-d3 <- d2_sf %>%
-  # Shorten names to 10 characters manually
-  rename_with(~ substr(.x, 1, 10)) %>%
-  # Ensure names are unique after shortening (e.g., col_1, col_2)
-  clean_names()%>%
-  glimpse()
-
-d3$comment_cl[d3$response_i=="R_6f1mTg4VnCQrhm6"]
+# d3 <- d2_sf %>%
+#   # Shorten names to 10 characters manually
+#   rename_with(~ substr(.x, 1, 10)) %>%
+#   # Ensure names are unique after shortening (e.g., col_1, col_2)
+#   clean_names()%>%
+#   glimpse()
+# 
+# d3$comment_cl[d3$response_i=="R_6f1mTg4VnCQrhm6"]
 
 # save --------------------------
 write_csv(d2,"./results/data_long9.csv")
 write_csv(d2b,"./results/q3_coordinates_all.csv")
 
-st_write(d3,"./gis_results/q3_coordinates.gpkg", 
+st_write(d2_sf,"./gis_results/q3_coordinates.gpkg", 
   layer = "beach_access", 
   delete_layer = TRUE)      # overwrites
 
 st_layers("./gis_results/q3_coordinates.gpkg")
 
-st_write(d3, "./gis_results/q3_coordinates.shp", delete_layer = TRUE)
+# st_write(d3, "./gis_results/q3_coordinates.shp", delete_layer = TRUE)
 
 
 
