@@ -21,7 +21,7 @@ rm(list = ls(all = TRUE))
 # setwd("C:/Users/jennifer.selgrath/Documents/research/R_projects/bab_survey_jcs")
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
-d1<-read_csv("./results/data_long.csv")%>%
+d1<-read_csv("./results/data_long1.csv")%>%
   mutate(q_demographic_race = as.character(QDemographic_Race))%>%
   glimpse()
 

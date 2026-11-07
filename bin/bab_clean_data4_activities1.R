@@ -96,8 +96,8 @@ d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Gr
 d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Group or family gatherings or activities","Group/Family gatherings or activities")
 d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Group or family gatherings or activities","Group/Family gatherings or activities")
 
-d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing/Art")
-d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing/Art")
+d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing/Art/Health")
+d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Meditation, reading, and/or relaxing","Meditation/Reading/Relaxing/Art/Health")
 
 d1$QImportant_Activities<-str_replace_all(d1$QImportant_Activities,"Observing or photographing nature or wildlife, outdoor education","Nature Observing/Photographing/Education/Research") #Observing or photographing nature/Outdoor education
 d1$QImportant_Activities_Most<-str_replace_all(d1$QImportant_Activities_Most,"Observing or photographing nature or wildlife, outdoor education","Nature Observing/Photographing/Education/Research")

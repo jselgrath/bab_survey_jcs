@@ -19,7 +19,7 @@ library(likert)
 rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
-d1<-read_csv("./results/data_long5.csv")%>%
+d1<-read_csv("./results/data_long7.csv")%>%
   glimpse
 
 unique(d1$Mechanism) #"Online"    "In_Person"
@@ -67,4 +67,4 @@ filter(d2,!is.na(Final_X))%>%
 
 
 # save
-write_csv(d2,"./results/data_long6.csv")
+write_csv(d2,"./results/data_long8.csv")

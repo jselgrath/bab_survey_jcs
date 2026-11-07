@@ -18,11 +18,14 @@ library(tidyr)
 rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
-d1<-read_csv("./data/Merged_Cleaned_QC_Final_5.8.2026.csv")%>% #Merged_Cleaned_QC_Final_v1.csv
+d1<-read_csv("./data/Merged_Cleaned_QC_Final_10.2.2026.csv")%>% #Merged_Cleaned_QC_Final_v1.csv
   mutate(QActual_Time=if_else(QActual_Time=="Less than once a year (i.e., rarely or never)","Less than once a year",QActual_Time))%>%
   mutate(response_id=ResponseId)%>%
   mutate(QE_Grocery=QE_Groccery)%>% #typo
   dplyr::select(-QE_Groccery)%>%
+  mutate(response_id = ResponseId) %>%
+  mutate(QNumber_Children=QNumber_Childern)%>%
+  select(-QNumber_Childern)%>%
   glimpse()
 
 # fix zips that are typos
@@ -109,5 +112,5 @@ unique(d6$Primary_County)
 
 # export formatted data --------------------------------
 write_csv(d4,"./results/data_long_duplicate_emails.csv")
-write_csv(d6,"./results/data_long.csv")
+write_csv(d6,"./results/data_long1.csv")
 write_csv(d_questions,"./results/data_questions.csv")
