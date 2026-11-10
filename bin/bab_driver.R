@@ -120,9 +120,9 @@ source("./bin/bab_clean_data11_reduce_columns.R")
 # -------------------------------------------------------------------------------------
 # maps -----
 
-<<<<<<< HEAD
+
 # california zip codes ## STILL TROUBLESHOOTING MAP##
-source("./bin/bab_a_map_zip.R")
+source("./bin/bab_map_zip_ca.R")
 # input:       ./results/data_long11.csv
 #              ./gis_data/zip_codes_ca/california_zip_codes4.shp
 #              ./gis_data/mpa_ca_state_124/ca_state_mpas_124.shp
@@ -130,10 +130,17 @@ source("./bin/bab_a_map_zip.R")
 #              ./gis_data/ca_counties/ca_counties.shp
 # output:      ./doc/bab_map_zip_codes_ca.png
 #              ./gis_data/ca_counties/ca_counties2.shp 
-=======
-# california zip codes
-source("./bin/bab_a_map_zip.R")
->>>>>>> 24808958fa1c1a753e599bab5b17caa3edae9671
+
+# Us states --------------
+# Should check this with actual text in columns
+source("./bin/bab_map_zip_us.R")
+# input:       ./data/Merged_and_Cleaned_10_2_2026.csv # has non-CA responses
+# output:      ./doc/bab_map_us_states.png
+
+# international ---------------
+source("./bin/bab_map_world.R")
+# input:       ./data/Merged_and_Cleaned_10_2_2026.csv # has non-CA responses
+# output:      ./doc/bab_map_us_world.png
 
 
 
