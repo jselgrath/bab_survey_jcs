@@ -120,6 +120,7 @@ source("./bin/bab_clean_data11_reduce_columns.R")
 # -------------------------------------------------------------------------------------
 # maps -----
 
+<<<<<<< HEAD
 # california zip codes ## STILL TROUBLESHOOTING MAP##
 source("./bin/bab_a_map_zip.R")
 # input:       ./results/data_long11.csv
@@ -129,6 +130,10 @@ source("./bin/bab_a_map_zip.R")
 #              ./gis_data/ca_counties/ca_counties.shp
 # output:      ./doc/bab_map_zip_codes_ca.png
 #              ./gis_data/ca_counties/ca_counties2.shp 
+=======
+# california zip codes
+source("./bin/bab_a_map_zip.R")
+>>>>>>> 24808958fa1c1a753e599bab5b17caa3edae9671
 
 
 

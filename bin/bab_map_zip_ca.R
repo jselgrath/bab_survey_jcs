@@ -40,7 +40,7 @@ d000<-st_read("./gis_data/national_marine_sanctuaries_2025/national_marine_sanct
   filter(name=="Channel Islands National Marine Sanctuary" | name=="Cordell Bank National Marine Sanctuary" |name=="Greater Farallones National Marine Sanctuary" |name=="Monterey Bay National Marine Sanctuary" |name=="Chumash Heritage National Marine Sanctuary" )%>%
   glimpse()
 # st_crs(d000)
-plot(d000[1])
+# plot(d000[1])
 
 unique(d000$name)
 
@@ -120,7 +120,7 @@ ggplot() +
       "1"     = sunset_colors[1],
       "0"     = "grey92"
     ),
-    name = "No.\nResponses",
+    name = "No. Responses",
     breaks = c(">50", "11–50", "4–10", "3", "2", "1", "0"),
     guide = guide_legend(order = 1)
   ) +
@@ -149,43 +149,48 @@ ggplot() +
     guide = guide_legend(order = 2)
   ) +
   
-  # 4. National Marine Sanctuaries (NMS)
+ # 4. National Marine Sanctuaries (NMS)
   new_scale_fill() +
   new_scale_color() +
   geom_sf(
     data = d000,
-    aes(fill = "National Marine Sanctuaries", color = "National Marine Sanctuaries"),
+    aes(fill = "National Marine\nSanctuaries", color = "National Marine\nSanctuaries"),
     linewidth = 0.35,
     alpha = 0.25
   ) +
   scale_fill_manual(
-    values = c("National Marine Sanctuaries" = "#1F78B4"),
+    values = c("National Marine\nSanctuaries" = "#1F78B4"),
     name = NULL,
-    guide = guide_legend(order = 3)
+    guide = guide_legend(
+      order = 3,
+      override.aes = list(color = "#084594", alpha = 0.4, linewidth = 0.5)
+    )
   ) +
   scale_color_manual(
-    values = c("National Marine Sanctuaries" = "#084594"),
-    name = NULL
+    values = c("National Marine\nSanctuaries" = "#084594"),
+    guide = "none" # <-- Suppresses duplicate color legend
   ) +
   
-  # 5. North Arrow
+  # 5. Scale Bar
+  annotation_scale(
+    location = "bl", 
+    pad_x = unit(2.5, "in"),   # dist from left margin
+    pad_y = unit(0.2, "in"),   # Baseline height
+    unit_category = "imperial",
+    width_hint = 0.18,
+    style = "ticks",
+    text_cex = 0.8
+  ) +
+  
+  # 6. North Arrow (Same height as scale bar, shifted right)
   annotation_north_arrow(
     location = "bl", 
     which_north = "true", 
-    pad_x = unit(1, "in"), 
-    pad_y = unit(0.65, "in"),
+    pad_x = unit(2.9, "in"),   # Offset to the right of the scale bar
+    pad_y = unit(0.4, "in"),   # y location
     height = unit(0.5, "in"), 
-    width = unit(0.3, "in"),
-    style = north_arrow_orienteering(text_size = 6)
-  ) +
-  
-  # 6. Scale Bar
-  annotation_scale(
-    location = "bl", 
-    pad_x = unit(1, "in"), 
-    pad_y = unit(0.3, "in"),
-    unit_category = "imperial",
-    width_hint = 0.18
+    width = unit(0.33, "in"),
+    style = north_arrow_orienteering(text_size = 9)
   ) +
   
   # 7. Map Title Annotation
@@ -193,8 +198,8 @@ ggplot() +
     "text", 
     x = I(0.46), y = I(0.82), 
     label = "Ocean\nAccess\nSurvey", 
-    size = 6.5, 
-    fontface = "bold",
+    size = 11, 
+    fontface = "bold", 
     color = "grey30", 
     hjust = 0
   ) +
@@ -204,10 +209,11 @@ ggplot() +
   theme(
     plot.background = element_rect(fill = "white", color = NA),
     panel.background = element_rect(fill = "white", color = NA),
-    legend.position = c(0.12, 0.25),
+    legend.position = c(0.089, 0.035),  #
+    legend.justification = c(0, 0),    # Anchors bottom-left of legend
     legend.box = "vertical",
-    legend.title = element_text(size = 9, face = "bold"),
-    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 11, face = "bold"),
+    legend.text = element_text(size = 10),
     legend.spacing.y = unit(0.05, "cm"),
     plot.margin = margin(10, 10, 10, 10)
   )
@@ -215,5 +221,7 @@ ggplot() +
 ggsave("./doc/bab_map_zip_codes_ca.png", width = 9, height = 9, dpi = 300)
 
 
-# sAVe county shapefile
-st_write(d0000,"./gis_results/ca_counties2.shp")
+# save county shapefile
+st_write(d0000,"./gis_results/ca_counties2.shp",delete_layer = TRUE)
+
+st_write(  d0000, dsn = "./gis_results/counties.gdb",  layer = "ca_counties2",   driver = "OpenFileGDB",   delete_layer = TRUE)
