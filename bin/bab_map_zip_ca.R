@@ -125,13 +125,24 @@ ggplot() +
     guide = guide_legend(order = 1)
   ) +
   
-  # 2. Outlined Survey Counties (mid-grey dashed line, no fill)
+# 2. Outlined Survey Counties (mid-grey dashed line, no fill)
   geom_sf(
     data = d_survey_counties,
+    aes(linetype = "Focal County"),
     fill = NA,
-    color = "grey50",
-    linetype = "dashed",
+    color = "grey60",
     linewidth = 0.55
+  ) +
+  scale_linetype_manual(
+    name = NULL,
+    values = c("Focal County" = "twodash"),
+    guide = guide_legend(order = 4,
+      override.aes = list(
+        color = "grey60",
+        linewidth = 0.75,
+        fill = NA
+      )
+    )
   ) +
   
   # 3. Marine Protected Areas (MPAs)
@@ -146,29 +157,29 @@ ggplot() +
   scale_fill_manual(
     values = c("State MPAs" = alpha("#009B95", 0.5)),
     name = NULL,
-    guide = guide_legend(order = 2)
+    guide = guide_legend(order = 3) # <-- Fixed: added 'guide ='
   ) +
   
- # 4. National Marine Sanctuaries (NMS)
+  # 4. National Marine Sanctuaries (NMS)
   new_scale_fill() +
   new_scale_color() +
   geom_sf(
     data = d000,
-    aes(fill = "National Marine\nSanctuaries", color = "National Marine\nSanctuaries"),
+    aes(fill = "National Marine Sanctuaries", color = "National Marine Sanctuaries"),
     linewidth = 0.35,
     alpha = 0.25
   ) +
   scale_fill_manual(
-    values = c("National Marine\nSanctuaries" = "#1F78B4"),
+    values = c("National Marine Sanctuaries" = "#57addfff"),
     name = NULL,
-    guide = guide_legend(
-      order = 3,
+    guide = guide_legend(           # <-- Fixed: removed duplicate nested guide_legend()
+      order = 2,
       override.aes = list(color = "#084594", alpha = 0.4, linewidth = 0.5)
     )
   ) +
   scale_color_manual(
-    values = c("National Marine\nSanctuaries" = "#084594"),
-    guide = "none" # <-- Suppresses duplicate color legend
+    values = c("National Marine Sanctuaries" = "#084594"),
+    guide = "none"
   ) +
   
   # 5. Scale Bar
@@ -209,7 +220,7 @@ ggplot() +
   theme(
     plot.background = element_rect(fill = "white", color = NA),
     panel.background = element_rect(fill = "white", color = NA),
-    legend.position = c(0.089, 0.035),  #
+    legend.position = c(0.089, 0.01),
     legend.justification = c(0, 0),    # Anchors bottom-left of legend
     legend.box = "vertical",
     legend.title = element_text(size = 11, face = "bold"),

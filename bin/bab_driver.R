@@ -110,18 +110,56 @@ source("./bin/bab_clean_data10_fishing_influencer.R")
 #              ./results/data_long10_all_influencer_var.csv # retains all influencer variables (including influencer_most_b,influencer_most_b2,influencer_any_b2)
 #              ./doc/fishing_influencer_summary.csv
 
-
-# reduce redundant columns and rearrange, remove question time stamps ------------------------------
-source("./bin/bab_clean_data11_reduce_columns.R")
+# clean tribal names ------------------------------
+source("./bin/bab_clean_data11_clean_tribal_names.R")
 # input:       ./results/data_long10.csv
 # output:      ./results/data_long11.csv
 
+#create variables for focal county
+source("./bin/bab_clean_data12_focal_county.R")
+# input:       ./results/data_long11.csv
+# output:      ./results/data_long12.csv
+
+
+
+# reduce redundant columns and rearrange, remove question time stamps ------------------------------
+source("./bin/bab_clean_data13_reduce_columns.R")
+# input:       ./results/data_long12.csv
+# output:      ./results/data_long13.csv
+
+
 
 # -------------------------------------------------------------------------------------
-# maps -----
+# MAKE CLEANED DATA TO FINAL DATA FOR ANALYSIS  --------
+# -------------------------------------------------------------------------------------
+# make a final version of cleaned data to input to other analyses
+# using this so if I add other cleaning the other code is stable
+source("./bin/bab_clean_data99_final_for_analysis.R")
+# input:       ./results/data_long12.csv
+# output:      ./results/data_final.csv
+
+bab_clean_data99_weight
+# input:       ./results/data_final.csv
+# output:      
+
+# -------------------------------------------------------------------------------------
+# SAMPLE MAPS  --------
+## STILL TROUBLESHOOTING MAPS##
+# -------------------------------------------------------------------------------------
+# Us states --------------                -- full dataset --
+# Should check this with actual text in columns
+source("./bin/bab_map_zip_us.R")
+# input:       ./data/Merged_and_Cleaned_10_2_2026.csv # has non-CA responses
+# output:      ./doc/bab_map_us_states.png
 
 
-# california zip codes ## STILL TROUBLESHOOTING MAP##
+# international ---------------           -- full dataset --
+source("./bin/bab_map_world.R")
+# input:       ./data/Merged_and_Cleaned_10_2_2026.csv # has non-CA responses
+# output:      ./doc/bab_map_us_world.png
+
+
+# california by zip codes ----------      --Sample used for analysis, not full dataset --
 source("./bin/bab_map_zip_ca.R")
 # input:       ./results/data_long11.csv
 #              ./gis_data/zip_codes_ca/california_zip_codes4.shp
@@ -131,30 +169,58 @@ source("./bin/bab_map_zip_ca.R")
 # output:      ./doc/bab_map_zip_codes_ca.png
 #              ./gis_data/ca_counties/ca_counties2.shp 
 
-# Us states --------------
-# Should check this with actual text in columns
-source("./bin/bab_map_zip_us.R")
-# input:       ./data/Merged_and_Cleaned_10_2_2026.csv # has non-CA responses
-# output:      ./doc/bab_map_us_states.png
 
-# international ---------------
-source("./bin/bab_map_world.R")
-# input:       ./data/Merged_and_Cleaned_10_2_2026.csv # has non-CA responses
-# output:      ./doc/bab_map_us_world.png
-
-
-
+# -------------------------------------------------------------------------------------
+# ACCESS MAPS  --------
+# -------------------------------------------------------------------------------------
+# map of access points used by respondents  -------------
+# q3 maps - delete points >5km from coast and snap points <10km from coast to coast. for land points only.
+source("./bin/bab_q3_maps_snap_to_coast.R")
+# input:      ./gis/q3_coordinates.shp
+#             ./gis/q3_coordinates.gdb  layer = "beach_access"    
+# output:     ./gis/q3_coordinates_2.shp 
+#             ./gis/q3_coordinates.gdb  layer = "beach_access_2"
 
 
+# q3 maps - delete points >5km from coast and snap points <10km from coast to coast. for ocean and land points,
+source("./bin/bab_q3_maps_snap_to_coast2.R")
+# input:      ./gis_data/coastline_ca/Coastline_CA.shp
+#             ./gis/q3_coordinates.gdb  layer = "beach_access"    
+# output:     ./gis/q3_coordinates_4.shp 
+#             ./gis/q3_coordinates.gdb  layer = "beach_access_3"
+
+
+# -------------------------------------------------------------------------------------
+# sample weighting --------
+# -------------------------------------------------------------------------------------
+# input:       ./results/data_long11.csv
 
 
 
 
+# -------------------------------------------------------------------------------------
+# activity questions --------
+# -------------------------------------------------------------------------------------
+source("./bin/bab_q_activities.R")
+# input:       ./results/data_long9.csv
+# output:      ./doc/QImportant_Activities_activity_w2.png
+#              ./doc/QImportant_Activities_Most_activity_w.png
+
+source("./bin/bab_q_activity_q4_q5_race.R")
+# input:       ./results/data_long9.csv
+# output:      ./results/data_long9_race.csv
+#              ./doc/QImportant_Activities_Most2_activity_race_pct_influencer_vs_noinfluencer.png
+#              ./doc/QImportant_Activities_Most2_activity_race_count_alldata.png
+#              ./doc/QImportant_Activities_Most2_activity_race_count_noinfluencer.png
+#              ./doc/QImportant_Activities_Most2_activity_race_p_within_activity.png
+#              ./doc/QImportant_Activities_Most2_activity_race_p_within_race.png
+#              ./doc/QImportant_Activities_Most2_activity_race_difference.png
 
 
 
-
+# -------------------------------------------------------------------------------------
 # influencer exploring ---------------
+# -------------------------------------------------------------------------------------
 
 # chart relative influence of influencer vs other online responses - all data
 # source("./bin/bab_fishing_most_table_all2.R")
@@ -191,6 +257,9 @@ source("./bin/bab_fishing_influencer_graph2.R")
 # output:      ./doc/fishing_influencer_time.png
 
 
+# -------------------------------------------------------------------------------------
+# undergrad projects ----------------------
+# -------------------------------------------------------------------------------------
 
 # -----------------------------
 # undergrad project 1: cleaned comments - q32, q50 in two phases of data collection - PART II
@@ -213,20 +282,20 @@ source("./bin/q_comment_sentiment.R") #Not done - versions for groups of words o
 # output:     ./doc/q3_bab_survey_2025_summary_report.csv
 #             ./results/q3_bab_survey_2025_maps_hdn_georect.csv # for all survey versions
 
-# q3 maps - delete points >5km from coast and snap points <10km from coast to coast. for land points only.
-source("./bin/bab_q3_maps_snap_to_coast.R")
-# input:      ./gis/q3_coordinates.shp
-#             ./gis/q3_coordinates.gdb  layer = "beach_access"    
-# output:     ./gis/q3_coordinates_2.shp 
-#             ./gis/q3_coordinates.gdb  layer = "beach_access_2"
-
-
-# q3 maps - delete points >5km from coast and snap points <10km from coast to coast. for ocean and land points,
-source("./bin/bab_q3_maps_snap_to_coast2.R")
-# input:      ./gis_data/coastline_ca/Coastline_CA.shp
-#             ./gis/q3_coordinates.gdb  layer = "beach_access"    
-# output:     ./gis/q3_coordinates_4.shp 
-#             ./gis/q3_coordinates.gdb  layer = "beach_access_3"
+# # q3 maps - delete points >5km from coast and snap points <10km from coast to coast. for land points only.
+# source("./bin/bab_q3_maps_snap_to_coast.R")
+# # input:      ./gis/q3_coordinates.shp
+# #             ./gis/q3_coordinates.gdb  layer = "beach_access"    
+# # output:     ./gis/q3_coordinates_2.shp 
+# #             ./gis/q3_coordinates.gdb  layer = "beach_access_2"
+# 
+# 
+# # q3 maps - delete points >5km from coast and snap points <10km from coast to coast. for ocean and land points,
+# source("./bin/bab_q3_maps_snap_to_coast2.R")
+# # input:      ./gis_data/coastline_ca/Coastline_CA.shp
+# #             ./gis/q3_coordinates.gdb  layer = "beach_access"    
+# # output:     ./gis/q3_coordinates_4.shp 
+# #             ./gis/q3_coordinates.gdb  layer = "beach_access_3"
 
 
 # gis map: bab_q3_responses.aprx
@@ -235,6 +304,7 @@ source("./bin/bab_q3_maps_snap_to_coast2.R")
 # ------------------------------
 # undergrad project 3: mapping zip codes where respondents live
 # student: nadia garcia, csusm
+# spring 2026
 # ------------------------------
 # bab_clean_subset_undergrad_projects.R
 
@@ -254,9 +324,9 @@ source("./bin/q_econ_subset.R")
 # output: ./results/q_econ_subset.csv  
 # ------------------------------
 
-# ---------------------------
-# FOCUS GROUPS
-
+# -------------------------------------------------------------------------------------
+# FOCUS GROUPS DATASETS  -----------------
+# -------------------------------------------------------------------------------------
 # subsets for specific focus groups ----------------
 # also has code to pull emails for outreach in Humboldt and Del Norte counties
 source("./bin/bab_fg_neighborhood_subsets.R")
@@ -395,22 +465,7 @@ source("./bin/q_wb_1organize.R")
 #              
 # output:   
 #    
-# -----------------------------------------------------
-# -- activity questions --
-source("./bin/bab_q_activities.R")
-# input:       ./results/data_long9.csv
-# output:      ./doc/QImportant_Activities_activity_w2.png
-#              ./doc/QImportant_Activities_Most_activity_w.png
 
-source("./bin/bab_q_activity_q4_q5_race.R")
-# input:       ./results/data_long9.csv
-# output:      ./results/data_long9_race.csv
-#              ./doc/QImportant_Activities_Most2_activity_race_pct_influencer_vs_noinfluencer.png
-#              ./doc/QImportant_Activities_Most2_activity_race_count_alldata.png
-#              ./doc/QImportant_Activities_Most2_activity_race_count_noinfluencer.png
-#              ./doc/QImportant_Activities_Most2_activity_race_p_within_activity.png
-#              ./doc/QImportant_Activities_Most2_activity_race_p_within_race.png
-#              ./doc/QImportant_Activities_Most2_activity_race_difference.png
 
 # -- mpa questions --
 source("./bin/bab_q_mpa_nms.R")

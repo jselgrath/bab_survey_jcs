@@ -9,6 +9,7 @@
 library(tidyverse)
 library(scales)
 library(lubridate)
+library(utils)
 
 # --------------------------------------------------------------------------
 # load data -----------------------------------------------------------
@@ -17,10 +18,11 @@ setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 
 # read file
-d1 <- read_csv("./results/data_long10.csv") %>%
+d1 <- read_csv("./results/data_long12.csv") %>%
   glimpse()
 
 writeClipboard(names(d1))
+
 
 # --------------------------------------------------------------------------
 # 1. Define ordered column list (excluding anything starting with *)
@@ -29,8 +31,7 @@ desired_cols <- c(
   "StartDate", "Progress", "Durationinseconds", "Finished", "response_id",
   "LocationLatitude", "LocationLongitude", "UserLanguage", "Consent",
   "QRepeat", "QDesired_Time", "QActual_Time", "QUse_Area", "QUse_Area_TEXT",
-  "q_mapping_county", "map", "x_long", "y_lat", "county_coastal",
-  "county_cdfw_region", 
+  "q_mapping_county", "map", "x_long", "y_lat", 
   "q_activities2", "q_activities_most2", "q_activity_all3",
   "q_activity_most3", "q_activities_text_2", "q_activities_most_text_2",
   "restoration_b_2", "QImportant_Activities", "QImportant_Activities_TEXT",
@@ -67,15 +68,18 @@ desired_cols <- c(
   "QDemographic_Race_TEXT", "QDemographic_Asian", "QDemographic_Asian_TEXT",
   "QDemographic_Tribal", "QDemographic_Tribal_TEXT", "QDemographic_Birth",
   "QDemographic_Income", "QDemographic_Income_Collapsed", "QDemographic_Family",
-  "q_demographic_race", "q_demographic_gender", "q_demographic_education",
+  "q_demographic_race", 
+  
+"race_white_b", "race_black_b", "race_latinx_b", "race_asian_b", "race_indigenous_b", "race_nhpi_b", "race_meha_b", "race_another_b", "race_na", "q_demographic_race1_minority", "q_demographic_race2_indig", "q_demographic_race3_equal", "q_demographic_race4_hispanic", "q_demographic_gender", "tribe_clean", "tribe_ca", "tribe_ca_b1", "tribe_ca_b", "q_demographic_gender", "q_demographic_education",
   "QNumber_Children", "QDemographic_Swimming", "comment2", "comment_dog_b",
   "comment_dog_walking", "comment_dog_positive", "comment_activity", "Update",
   "Email", "Version", "Mechanism", "Phase", "Format", "State", "City",
   "Primary_County", "County_Name_1", "County_Name_2", "County_Name_3",
-  "County_Name_4", "RES_RATIO_1", "RES_RATIO_2", "RES_RATIO_3", "RES_RATIO_4",
+  "County_Name_4", "county_coastal",   "county_cdfw_region", "county_focal_b", "county_focal_yr",
+  
+  "RES_RATIO_1", "RES_RATIO_2", "RES_RATIO_3", "RES_RATIO_4",
   "EJ_Score", "EJ_Bin", "Distance", "Distance_Binned", "influencer_any_b",
-  "fishing_any_b", "fishing_most_b"
-)
+  "fishing_any_b", "fishing_most_b")
 
 # --------------------------------------------------------------------------
 # 2. Reorder columns and keep only desired ones existing in d1
@@ -95,4 +99,4 @@ if (length(missing_cols) > 0) {
 glimpse(d2)
 
 
-write_csv(d2,"./results/data_long11.csv")
+write_csv(d2,"./results/data_long13.csv")

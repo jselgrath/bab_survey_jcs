@@ -2,7 +2,7 @@
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation/ CINMS
 
-# goal: clean county names for maps
+# goal: clean county names for access maps
 
 
 # ----------------------------------------------------------
