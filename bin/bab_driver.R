@@ -123,10 +123,16 @@ source("./bin/bab_clean_data12_focal_county.R")
 
 
 # reduce redundant columns and rearrange, remove question time stamps ------------------------------
+# create nature activity variable ---------
 source("./bin/bab_clean_data13_reduce_columns.R")
 # input:       ./results/data_long12.csv
 # output:      ./results/data_long13.csv
 
+# address influencer bias in sample ------
+# because significant influence on activity based on all data sets (whole state, coastal counties, focal counties), evaluated three options (removing entirely, downweighting, or subsampling - decided to use subsampling)
+source("./bin/bab_clean_data14_influencer_subsample.R")
+# input:       ./results/data_long13.csv
+# output:      ./results/data_long14.csv
 
 
 # -------------------------------------------------------------------------------------
@@ -135,12 +141,15 @@ source("./bin/bab_clean_data13_reduce_columns.R")
 # make a final version of cleaned data to input to other analyses
 # using this so if I add other cleaning the other code is stable
 source("./bin/bab_clean_data99_final_for_analysis.R")
-# input:       ./results/data_long12.csv
+# input:       ./results/data_long14.csv
 # output:      ./results/data_final.csv
 
-bab_clean_data99_weight
-# input:       ./results/data_final.csv
-# output:      
+# weight data by age, race, gender ----------
+source("./bin/bab_clean_data99_weight.R")
+# input:        ./results/data_final.csv
+# output:       ./results/data_final_weighted.csv
+#               ./results/data_final_weighted_coastal.csv   # coastal counties
+#               ./results/data_final_weighted_focal.csv     # focal counties
 
 # -------------------------------------------------------------------------------------
 # SAMPLE MAPS  --------
@@ -169,6 +178,12 @@ source("./bin/bab_map_zip_ca.R")
 # output:      ./doc/bab_map_zip_codes_ca.png
 #              ./gis_data/ca_counties/ca_counties2.shp 
 
+# maps of california - white outline, white fill
+source("./bin/bab_map_ca_outline.R")
+# input:       ./gis_data/ca_counties/ca_counties.shp
+# output:      ./doc/ca_filled_white.png
+#              ./doc/ca_outline_white.png
+
 
 # -------------------------------------------------------------------------------------
 # ACCESS MAPS  --------
@@ -190,21 +205,38 @@ source("./bin/bab_q3_maps_snap_to_coast2.R")
 #             ./gis/q3_coordinates.gdb  layer = "beach_access_3"
 
 
-# -------------------------------------------------------------------------------------
-# sample weighting --------
-# -------------------------------------------------------------------------------------
-# input:       ./results/data_long11.csv
-
-
 
 
 # -------------------------------------------------------------------------------------
 # activity questions --------
 # -------------------------------------------------------------------------------------
-source("./bin/bab_q_activities.R")
+
+# graphs to test out methods
+source("./bin/bab_graph_activity.R") #bab_q_activities
 # input:       ./results/data_long9.csv
-# output:      ./doc/QImportant_Activities_activity_w2.png
-#              ./doc/QImportant_Activities_Most_activity_w.png
+# output:      ./doc/bab_activity_focal.png   
+#              ./doc/bab_activity_wide_focal.png   
+
+# graphs for activities by raw or weighted and all three datasets (statewide, coastal, focal) 
+source("./bin/bab_graph_activity2.R")
+# input:       ./results/data_final_weighted_focal.csv
+#              ./results/data_final_weighted_coastal.csv
+#              ./results/data_final_weighted.csv # whole state
+# output:      ./doc/bab_activities_most/all_statewide/coastal/focal_raw/weighted.png
+
+
+# activity graphs comparing influencer and non-influencer period
+# here using raw or weighted, but always subsampled data 
+source("./bin/bab_graph_activity3.R")
+# input:       ./results/data_final_weighted_focal.csv
+#              ./results/data_final_weighted_coastal.csv
+#              ./results/data_final_weighted.csv # whole state
+# output:      ./doc/bab_activities_most/all_influencer_statewide/coastal/focal_raw/weighted.png
+
+# graph activity by mentorship and time
+source("./bin/bab_graph_activity_mentor_time.R")
+
+
 
 source("./bin/bab_q_activity_q4_q5_race.R")
 # input:       ./results/data_long9.csv

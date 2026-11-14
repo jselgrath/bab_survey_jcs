@@ -221,10 +221,10 @@ activity_patterns <- list(
   "Cultural or religious ceremonies" = 
     "(?i)\\b(ceremony|ceremonies|church|religion|spiritual|sacred|tribal tradition|native culture|ancestral)\\b",
 
-  "Camping" = 
+  "Group/Family gatherings or activities" = # was Camping but very small
     "(?i)\\b(recreational camping|camped|tent camping|camp spots|campsite)\\b",
   
-  "Habitat restoration / Conservation action" = 
+  "Volunteering" = # was Habitat restoration / Conservation action, but very small category
     "(?i)\\b(culling urchins|kelp restoration|dune restoration|outplanting|clearing urchins|restoration project)\\b"
 )
 

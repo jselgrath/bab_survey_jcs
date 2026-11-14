@@ -2,49 +2,27 @@
 # Jennifer Selgrath 
 # California Marine Sanctuary Foundation
 
-# goal: clean write in activities
+# Goal: Clean write-in activities, enforce single-valued most important activity,
+#       and create binary variables (q_activity_consumptive_most_b, q_activity_restoration)
 
 # ----------------------------------------------------------
-# load libraries ######-------------------------------------
+# Load libraries -------------------------------------------
 library(tidyverse)
 library(stringr)
 library(purrr)
 
-
-# q_activities2 (whitespace and trailing/leading commas cleaned)
-# q_activities_most2 (cleaned version of raw choice).
-# q_activities_text_2 (classified general write-ins)
-# q_activities_most_text_2 (classified "most important" write-ins).
-# Derived Most Important: q_activity_most3 ((resolves "Other" / "Another activity") using q_activities_most_text_2 and q_activities_text_2).
-# Overall Merged Activity: q_activity_all3 (merges q_activities2, q_activities_text_2, q_activities_most_text_2, and comment_activity).Binary Flag: restoration_b_2
 # --------------------------------------------------------------------------
-# load data -----------------------------------------------------------
+# Load data ----------------------------------------------------------------
 rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
-# comments - for activities and dogs
-# d0<-read_csv("./results/q_comments_cleaned.csv")%>%
-#   glimpse()
-
-d1<-read_csv("./results/data_long5.csv")%>%
+d1 <- read_csv("./results/data_long5.csv", guess_max = Inf) %>%
   glimpse()
 
-
-# ask gemini for code to clean and translate comments based on actual responses ------------------------------
-
-# these are activity categories in the ocean access survey. 
-writeClipboard(d1$QImportant_Activities)
-# can you write code for write-in activities to classify them in existing categories where appropriate, and to make new categories as needed. and make a separate binary column $restoration_b where (1= activity is about restoration). These are the write in activities:
-writeClipboard(as.character(d1$QImportant_Activities_TEXT))
-
-# I have now cleaned the activity write in text for any activity and there another write in column for the most important activity.  $QImportant_Activities_Most_TEXT. would it be more efficent to write a new chunk of code (new R file) to clean that or to do it as part of the same functions here. This the list of write in most important activities:
-writeClipboard(as.character(d1$QImportant_Activities_Most_TEXT))
-unique(d1$QImportant_Activities_Most_TEXT)
-
 # -------------------------------------------------------------------------
-# 1. list to classify write in text (all options identified in writeClipboard text that was entered into Gemini and iteratively adjusted over many iterations)
+# 1. Regex dictionary to classify write-in text (ordered by priority)
 # -------------------------------------------------------------------------
-
+# NOTE: For single-choice columns (q_activity_most3), the FIRST matching category in this list wins.
 activity_text <- list(
   # --- Existing Survey Categories ---
   "Walking/Running/Hiking" = 
@@ -53,13 +31,11 @@ activity_text <- list(
   "Swimming/Bodysurfing" = 
     "(?i)\\b(swim|swimming|bodysurf|boogie board|boogey board|bathing|cooling and bathing|dipping my toes)\\b",
   
-  # Matches personal surfing as well as surf coaching/instruction
   "Surfing" = 
     "(?i)(?<!want to |used to )\\b(surf|surfing|surfer|surfboard|surf coach|surf class)\\b",
   
-  # Matches fishing recreationally, commercially, or collecting
   "Fishing or collecting food" = 
-    "(?i)\\b(fish|fishing|commercial fish|fish commercially|digging sand crabs)\\b",
+    "(?i)\\b(fish|fishing|commercial fish|fish commercially)\\b",
   
   "Paddleboarding/Kiteboarding/Kayaking/Canoeing" = 
     "(?i)\\b(kayak|kayaking|canoe|canoeing|rowing|outrigger|paddle)\\b",
@@ -77,12 +53,11 @@ activity_text <- list(
     "(?i)\\b(vibing out|relaxing|sunbath|sun bath|sun tanning|napping|listening to music|art|artwork|painting|sketchin|singing|crafts|creating)\\b",
   
   "Nature Observing/Photographing/Education/Research" = 
-    "(?i)\\b(tide pool|tidepool|tidepooling|rocks looking at ocean life|birding|research|ecological|scientific|monitoring|field trip|lectures|aquarium|docent|clam survey|studying)\\b",
+    "(?i)\\b(tide pool|tidepool|tidepooling|rocks looking at ocean life|birding|research|ecological|scientific|monitoring|field trip|lectures|aquarium|docent|clam survey|studying|digging sand crabs)\\b",
   
   "Group/Family gatherings or activities" = 
     "(?i)\\b(kids|children|playing with sand toys|bringing visitors|visit friend|drum circle|bonfire|bonfires|dining|dine out|foodie|drinking)\\b",
   
-  # Catches paid work across instruction, commercial harvesting, military, etc.
   "Paid work" = 
     "(?i)\\b(commercial fish|fish commercially|us navy|coaching.*?surf|coach|working|paid work|job)\\b",
   
@@ -90,28 +65,37 @@ activity_text <- list(
     "(?i)\\b(volunteer|cleaning up beach|pick up trash|cleaning|unpaid work|helping people|habitat restoration|restoration work|removing invasive|planting native)\\b",
   
   "Cultural or religious ceremonies" = 
-    "(?i)\\b(native singing|indigenous|ceremonials)\\b",
+    "(?i)\\b(native singing|indigenous|ceremonials|ceremony|ceremonies)\\b",
 
-  # --- Additional Categories ---
-  "Camping" = 
+  # --- Merged Additional Categories ---
+  "Group/Family gatherings or activities" = 
     "(?i)\\b(camp|camping)\\b",
   
-  "Beachcombing" = 
+  "Nature Observing/Photographing/Education/Research" = 
     "(?i)\\b(beach combing|beachcombing|collect shell|finding shells|rock exploring|rock hunting|finding shells rocks|agetes?|agates?)\\b"
 )
 
 # -------------------------------------------------------------------------
-# 2. SANITIZE & CLASSIFICATION FUNCTIONS
+# 2. Sanitize & Classification Functions
 # -------------------------------------------------------------------------
 f_sanitize_text <- function(txt) {
   if (is.na(txt)) return(NA_character_)
-  t <- str_replace_all(txt, "[\u00A0\u200B\uFEFF]", " ") # Non-breaking / zero-width spaces
-  t <- str_replace_all(t, "[‘’`]", "'")                   # Curly apostrophes
-  t <- str_replace_all(t, "[“”]", "\"")                  # Curly quotes
-  t <- str_remove_all(t, "^[\\s,]+|[\\s,]+$")             # Leading/trailing commas & whitespace
+  t <- str_replace_all(txt, "[\u00A0\u200B\uFEFF]", " ")
+  t <- str_replace_all(t, "[‘’`]", "'")
+  t <- str_replace_all(t, "[“”]", "\"")
+  t <- str_remove_all(t, "^[\\s,]+|[\\s,]+$")
   t <- str_squish(t)
   if (t %in% c("", "NA", "null", "None", "none", "-")) return(NA_character_)
   return(t)
+}
+
+# Helper to guarantee a single value (takes first comma-separated item if multiple exist)
+f_first_activity <- function(txt) {
+  t <- f_sanitize_text(txt)
+  if (is.na(t)) return(NA_character_)
+  first_val <- str_trim(str_split_1(t, "\\s*,+\\s*")[1])
+  if (first_val %in% c("", "NA")) return(NA_character_)
+  return(first_val)
 }
 
 f_classify_writein <- function(txt) {
@@ -144,62 +128,63 @@ f_classify_writein <- function(txt) {
   paste(unique(matched), collapse = ", ")
 }
 
-# Variable-argument merger that splits, strips invalid entries, and deduplicates
 f_merge_all_activities <- function(...) {
   inputs <- list(...)
   
-  # Sanitize and drop NAs
   sanitized <- map_chr(inputs, f_sanitize_text)
   valid_inputs <- sanitized[!is.na(sanitized)]
   if (length(valid_inputs) == 0) return(NA_character_)
   
-  # Split on any comma cluster, handling trailing/leading and repeated commas
   tokens <- unlist(lapply(valid_inputs, function(x) str_split_1(x, "\\s*,+\\s*")))
   tokens <- str_trim(tokens)
   
-  # Exclude placeholders and metadata
   filtered <- tokens[!tokens %in% c(
     "Another activity", 
-    "Other",
-    "Other, please specify:",
-    "Other, please specify",
+    "Other", 
+    "Other, please specify:", 
+    "Other, please specify", 
     "Choose not to answer", 
     "NA", 
     ""
   )]
   
-  # Deduplicate categories
   clean_tokens <- unique(filtered)
-  
   if (length(clean_tokens) == 0) return(NA_character_)
   
-  # Guaranteed single ", " between terms and no trailing comma
   paste(clean_tokens, collapse = ", ")
 }
 
 # -------------------------------------------------------------------------
-# 3. RESTORATION REGEX (Write-ins + Comments)
+# 3. Binary Flag Regexes (Restoration & Consumptive Write-ins)
 # -------------------------------------------------------------------------
 restoration_regex <- regex(
   "habitat restoration|restoration work|restoration project|removing invasive|planting native|kelp restoration|dune restoration|outplanting|culling urchins|clearing urchins", 
   ignore_case = TRUE
 )
 
+consumptive_writein_regex <- regex(
+  "beach ?combing|collect(ing)? shell|finding shells|shell hunting|finding glass|sea ?glass|glass|rock hunt(ing)?|rock exploring|agetes?|agates?|渔|钓",
+  ignore_case = TRUE
+)
+
 # -------------------------------------------------------------------------
-# 4. TRANSFORMATION PIPELINE (Preserves originals, creates numbered versions)
+# 4. Transformation Pipeline
 # -------------------------------------------------------------------------
+other_labels <- c("Other", "Other, please specify:", "Other, please specify", "Another activity")
+
 d2 <- d1 %>%
   mutate(
-    # 1. Cleaned versions of original multiple-choice columns (preserving original names)
+    # 1. Cleaned versions of original multiple-choice columns
     q_activities2 = map_chr(QImportant_Activities, f_sanitize_text),
     
+    # Enforce single value on q_activities_most2
     q_activities_most2 = if ("QImportant_Activities_Most" %in% names(.)) {
-      map_chr(QImportant_Activities_Most, f_sanitize_text)
+      map_chr(QImportant_Activities_Most, f_first_activity)
     } else {
       NA_character_
     },
     
-    # 2. Classified write-ins for general activities
+    # 2. Classified write-ins for general activities (can hold multiple for q_activity_all3)
     q_activities_text_2 = map_chr(QImportant_Activities_TEXT, f_classify_writein),
     
     # 3. Classified write-ins for most important activities
@@ -209,20 +194,45 @@ d2 <- d1 %>%
       NA_character_
     },
     
-    # 4. Standardized single "most important activity" resolving "Other" selections
+    # 4. Standardized SINGLE "most important activity"
     q_activity_most3 = case_when(
-      !is.na(q_activities_most_text_2) ~ q_activities_most_text_2,
+      !is.na(q_activities_most_text_2) ~ map_chr(q_activities_most_text_2, f_first_activity),
       
-      q_activities_most2 %in% c("Other", "Other, please specify:", "Other, please specify", "Another activity") | 
-        is.na(q_activities_most2) ~ q_activities_text_2,
+      q_activities_most2 %in% other_labels | is.na(q_activities_most2) ~ map_chr(q_activities_text_2, f_first_activity),
       
       q_activities_most2 %in% c("Choose not to answer", "NA", "") ~ NA_character_,
       
       TRUE ~ q_activities_most2
     ),
     
-    # 5. Binary restoration flag (evaluates write-ins and comments)
-    restoration_b_2 = if_else(
+    # Helper: Grab the relevant write-in text ONLY when respondent chose "Another activity" / "Other" or left Most blank
+    writein_for_most = case_when(
+      (q_activities_most2 %in% other_labels | is.na(q_activities_most2)) &
+        ("QImportant_Activities_Most_TEXT" %in% names(.)) &
+        !is.na(QImportant_Activities_Most_TEXT) ~ as.character(QImportant_Activities_Most_TEXT),
+      
+      (q_activities_most2 %in% other_labels | is.na(q_activities_most2)) &
+        !is.na(QImportant_Activities_TEXT) ~ as.character(QImportant_Activities_TEXT),
+      
+      TRUE ~ NA_character_
+    ),
+    
+    # 5. Binary consumptive flag for MOST important activity (1 = consumptive, 0 = non-consumptive)
+    q_activity_consumptive_most_b = case_when(
+      # Branch A: Respondent chose a specific option (NOT "Another activity" / "Other") -> use ONLY that choice
+      !is.na(q_activities_most2) & !(q_activities_most2 %in% other_labels) ~
+        if_else(q_activities_most2 == "Fishing or collecting food", 1L, 0L),
+      
+      # Branch B: Respondent chose "Another activity" / "Other" (or NA) -> check if resolved category is fishing OR write-in matches consumptive terms
+      TRUE ~ if_else(
+        (!is.na(q_activity_most3) & q_activity_most3 == "Fishing or collecting food") |
+          (!is.na(writein_for_most) & str_detect(writein_for_most, consumptive_writein_regex)),
+        1L, 0L
+      )
+    ),
+    
+    # 6. Binary restoration flag (evaluates write-ins and comments)
+    q_activity_restoration = if_else(
       (!is.na(QImportant_Activities_TEXT) & str_detect(QImportant_Activities_TEXT, restoration_regex)) |
       (if ("QImportant_Activities_Most_TEXT" %in% names(.)) {
         !is.na(QImportant_Activities_Most_TEXT) & str_detect(QImportant_Activities_Most_TEXT, restoration_regex)
@@ -231,28 +241,37 @@ d2 <- d1 %>%
       1L, 0L
     ),
     
-    # 6. Comprehensive merged activity column
+    # 7. Comprehensive merged activity column (keeps all matched activities)
     q_activity_all3 = pmap_chr(
       list(q_activities2, q_activities_text_2, q_activities_most_text_2, comment_activity),
       f_merge_all_activities
     )
-  )
-
-# -------------------------------------------------------------------------
-# 5. INSPECT OUTPUT & SAVE
-# -------------------------------------------------------------------------
-d2 %>%
-  select(
-    QImportant_Activities,
-    q_activities2,
-    QImportant_Activities_Most,
-    q_activity_most3,
-    QImportant_Activities_TEXT,
-    q_activities_text_2,
-    restoration_b_2,
-    q_activity_all3
   ) %>%
-  filter(!is.na(q_activities_text_2) | !is.na(QImportant_Activities_Most)) %>%
-  print(n = 25)
+  select(-writein_for_most)
 
+# -------------------------------------------------------------------------
+# 5. Verification & Save
+# -------------------------------------------------------------------------
+# Assert that NO rows in q_activities_most2 or q_activity_most3 contain commas (multiple values)
+stopifnot(!any(str_detect(d2$q_activities_most2, ","), na.rm = TRUE))
+stopifnot(!any(str_detect(d2$q_activity_most3, ","), na.rm = TRUE))
+
+# Check breakdown of q_activity_consumptive_most_b across raw choices and resolved categories
+
+d2 %>%
+  filter(q_activities_most2=="Another activity" & q_activity_consumptive_most_b==1) %>%
+  select(q_activities2,q_activity_all3,q_activities_text_2, comment_activity,comment2)
+  # view()
+  # filter(q_activity_consumptive_most_b==1)%>%
+  
+
+d2 %>%
+  count(q_activities_most2, q_activity_most3, q_activity_consumptive_most_b) %>%
+  filter(q_activity_consumptive_most_b==1)%>%
+  print(n = 40)
+
+
+unique(d2$q_activity_most3)
+
+# save -----
 write_csv(d2, "./results/data_long6.csv")

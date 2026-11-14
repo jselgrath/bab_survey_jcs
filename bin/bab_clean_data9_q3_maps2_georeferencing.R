@@ -49,24 +49,24 @@ d2<-d1%>%
 names(d2)
 
 # subset for Emily's project about coastal access locations
-d2b<-d2%>%
-  dplyr::select(response_id,UserLanguage,q_mapping_county,map,QDemographic_PrimaryZip:QDemographic_Swimming, q_demographic_race:q_demographic_education ,EJ_Score:Distance_Binned,Mechanism, Phase,Version, City, State, Primary_County,EJ_Score,EJ_Bin,Distance,Distance_Binned,x_long,y_lat)%>%
-  filter(!is.na(x_long)) %>% #remove surveys with no value
-  rename_with(~ str_remove(., "^QDemographic_")) %>%
-  rename_with(~ str_remove(., "^q_demographic_")) %>%
-  clean_names()%>%
-  glimpse()  
+# d2b<-d2%>%
+#   dplyr::select(response_id,UserLanguage,q_mapping_county,map,QDemographic_PrimaryZip:QDemographic_Swimming, q_demographic_race:q_demographic_education ,EJ_Score:Distance_Binned,Mechanism, Phase,Version, City, State, Primary_County,EJ_Score,EJ_Bin,Distance,Distance_Binned,x_long,y_lat)%>%
+#   filter(!is.na(x_long)) %>% #remove surveys with no value
+#   rename_with(~ str_remove(., "^QDemographic_")) %>%
+#   rename_with(~ str_remove(., "^q_demographic_")) %>%
+#   clean_names()%>%
+#   glimpse()  
 
 # make spatial files --------------------
-d2_sf <- st_as_sf(d2b, coords = c("x_long", "y_lat"), crs = 3310)
+d3<-d2%>%
+  filter(!is.na(x_long)) %>% #remove surveys with no value
+  glimpse()
+d3_sf <- st_as_sf(d3, coords = c("x_long", "y_lat"), crs = 3310)
 
-# d3_sf <-  d2_sf%>%
-#   select(QDemographic_CA_Years:q_demographic_education_clean)%>%
-#   glimpse()
 
-plot(d2_sf)
+# plot(d3_sf)
 
-# d3 <- d2_sf %>%
+# d3 <- d3_sf %>%
 #   # Shorten names to 10 characters manually
 #   rename_with(~ substr(.x, 1, 10)) %>%
 #   # Ensure names are unique after shortening (e.g., col_1, col_2)
@@ -77,9 +77,9 @@ plot(d2_sf)
 
 # save --------------------------
 write_csv(d2,"./results/data_long9.csv")
-write_csv(d2b,"./results/q3_coordinates_all.csv")
+# write_csv(d2b,"./results/q3_coordinates_all.csv")
 
-st_write(d2_sf,"./gis_results/q3_coordinates.gpkg", 
+st_write(d3_sf,"./gis_results/q3_coordinates.gpkg", 
   layer = "beach_access", 
   delete_layer = TRUE)      # overwrites
 
