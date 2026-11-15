@@ -98,45 +98,4 @@ if (length(missing_cols) > 0) {
 glimpse(d2)
 
 # --------------------------------------------------
-# make var for nature activities ------------
-d2 %>%
-  count(q_activity_most3, sort = TRUE)
-
-d3 <- d2 %>%
-  mutate(
-    # Strict definition: Direct interaction with marine species, tidepools, or ecosystems
-    nature_interact_strict = case_when(
-      is.na(q_activity_most3) ~ NA_real_,
-      str_detect(
-        q_activity_most3,
-        regex("Nature Observing|Fishing|Collecting|Tidepool|Snorkeling|Scuba|Kayak|Paddle|Boating|Cultural", ignore_case = TRUE)
-      ) ~ 1,
-      TRUE ~ 0
-    ),
-    
-    # Broad definition: Adds ocean immersion & shoreline movement (swimming, surfing, walking/beachcombing)
-    nature_interact_broad = case_when(
-      is.na(q_activity_most3) ~ NA_real_,
-      nature_interact_strict == 1 ~ 1,
-      str_detect(
-        q_activity_most3,
-        regex("Swimming|Bodysurfing|Surfing|Walking|Running|Hiking", ignore_case = TRUE)
-      ) ~ 1,
-      TRUE ~ 0
-    ),
-    
-    # Labeled factor version for clean plots and tables
-    nature_interact_cat = factor(
-      nature_interact_strict,
-      levels = c(1, 0),
-      labels = c("Direct Nature Interaction", "Other Coastal Activity")
-    )
-  )%>%
-  glimpse()
-
-# 2. Cross-tabulate to verify every category mapped as expected
-d3 %>%
-  count(q_activity_most3, nature_interact_strict, nature_interact_broad)
-
-
-write_csv(d3,"./results/data_long13.csv")
+write_csv(d2,"./results/data_long13.csv")

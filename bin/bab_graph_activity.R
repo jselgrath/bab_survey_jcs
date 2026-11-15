@@ -138,7 +138,7 @@ p1 <- ggplot(props_activity_most,
     position = "stack",
     show.legend = TRUE,
     pattern_color = "transparent", 
-    pattern_fill = "#d43d51",      
+    pattern_fill = "#D24818",      
     pattern_density = 0.4,         
     pattern_spacing = 0.02,
     color = NA                     
@@ -154,7 +154,7 @@ p1 <- ggplot(props_activity_most,
                      limits = c(0, max(totals_activity_most$total_pct) * 1.2)) +
   scale_x_discrete(labels = activity_labels) +
   scale_fill_manual(
-    values = c("Non-consumptive" = "#79ABE2", "Consumptive" = "#d43d51"),
+    values = c("Non-consumptive" = "#5DA2B0", "Consumptive" = "#D24818"),
     name = "Activity Type"
   ) +
   scale_pattern_manual(
@@ -280,13 +280,13 @@ p2 <- ggplot(props_activity_all,
     position = "stack",
     show.legend = TRUE,
     pattern_color = "transparent", 
-    pattern_fill = "#d43d51",      
+    pattern_fill = "#D24818",      
     pattern_density = 0.4,         
     pattern_spacing = 0.02,
     color = NA                     
   ) + 
   scale_fill_manual(
-    values = c("Non-consumptive" = "#007EB3", "Consumptive" = "#d43d51"), 
+    values = c("Non-consumptive" = "#8EBEC8", "Consumptive" = "#D24818"), 
     name = "Activity Type"
   ) +
   scale_pattern_manual(

@@ -123,7 +123,6 @@ source("./bin/bab_clean_data12_focal_county.R")
 
 
 # reduce redundant columns and rearrange, remove question time stamps ------------------------------
-# create nature activity variable ---------
 source("./bin/bab_clean_data13_reduce_columns.R")
 # input:       ./results/data_long12.csv
 # output:      ./results/data_long13.csv
@@ -134,6 +133,10 @@ source("./bin/bab_clean_data14_influencer_subsample.R")
 # input:       ./results/data_long13.csv
 # output:      ./results/data_long14.csv
 
+# create nature activity variable ---------
+source("./bin/bab_clean_data15_nature interaction.R")
+# input:       ./results/data_long14.csv
+# output:      ./results/data_long15.csv
 
 # -------------------------------------------------------------------------------------
 # MAKE CLEANED DATA TO FINAL DATA FOR ANALYSIS  --------
@@ -213,11 +216,11 @@ source("./bin/bab_q3_maps_snap_to_coast2.R")
 
 # graphs to test out methods
 source("./bin/bab_graph_activity.R") #bab_q_activities
-# input:       ./results/data_long9.csv
+# input:       ./results/data_final_weighted_focal.csv
 # output:      ./doc/bab_activity_focal.png   
 #              ./doc/bab_activity_wide_focal.png   
 
-# graphs for activities by raw or weighted and all three datasets (statewide, coastal, focal) 
+# graphs for activities by raw or weighted and all three datasets (statewide, coastal, focal) by consumptive/non-consumptive and nature/general
 source("./bin/bab_graph_activity2.R")
 # input:       ./results/data_final_weighted_focal.csv
 #              ./results/data_final_weighted_coastal.csv
@@ -235,6 +238,23 @@ source("./bin/bab_graph_activity3.R")
 
 # graph activity by mentorship and time
 source("./bin/bab_graph_activity_mentor_time.R")
+# input:       ./results/data_final_weighted_focal.csv
+# output:      ./doc/bab_activity_mentor_wide_focal_n_interaction.png
+#              ./doc/bab_activity_time_wide_focal_n_interaction.png
+
+# -------------------------------------------------------------------
+# MPA AWARENESS ------------------
+source("./bin/bab_q_mpa_nms.R")
+# input:       ./results/data_final_weighted_focal.csv
+# output:      ./doc/bab_graph_mpa_focal_weighted.png
+#              ./doc/bab_graph_nms_focal_weighted.png
+#              ./doc/bab_graph_mpa_purpose_focal_weighted.png
+#              ./doc/bab_graph_mpa_science_focal_weighted.png
+
+
+
+
+
 
 
 
@@ -499,13 +519,7 @@ source("./bin/q_wb_1organize.R")
 #    
 
 
-# -- mpa questions --
-source("./bin/bab_q_mpa_nms.R")
-# input:       ./results/data_long8.csv
-# output:      ./doc/q17_mpa_famil.png
-#              ./doc/q18_nms_famil.png
-#              ./doc/q29_mpa_purpose.png
-#              ./doc/Q30_mpa_science.png
+
 
 source("./bin/bab_q17_race2.R")
 # input:       ./results/data_long5.csv

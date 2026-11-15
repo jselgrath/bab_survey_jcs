@@ -146,7 +146,7 @@ f_plot_activities_influencer <- function(file_path, scope_tag, pop_weight_col, w
   p1 <- ggplot(props_most, aes(x = q_activity_most3, y = pct, fill = consumptive_label, pattern = q_activity_most3)) +
     geom_col_pattern(
       position = "stack", show.legend = TRUE,
-      pattern_color = "transparent", pattern_fill = "#d43d51",
+      pattern_color = "transparent", pattern_fill = "#D24818",
       pattern_density = 0.4, pattern_spacing = 0.02, color = NA
     ) +
     geom_text(
@@ -158,7 +158,7 @@ f_plot_activities_influencer <- function(file_path, scope_tag, pop_weight_col, w
     facet_wrap(~ influencer_group, ncol = 1, labeller = labeller(influencer_group = facet_map_most)) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, max(totals_most$total_pct) * 1.18)) +
     scale_x_discrete(labels = activity_labels) +
-    scale_fill_manual(values = c("Non-consumptive" = "#79ABE2", "Consumptive" = "#d43d51"), name = "Activity Type") +
+    scale_fill_manual(values = c("Non-consumptive" = "#8EBEC8", "Consumptive" = "#D24818"), name = "Activity Type") +
     scale_pattern_manual(values = pattern_most, guide = "none") +
     guides(fill = guide_legend(override.aes = list(pattern = "none"))) +
     labs(
@@ -276,10 +276,10 @@ f_plot_activities_influencer <- function(file_path, scope_tag, pop_weight_col, w
   p2 <- ggplot(props_all, aes(x = q_activity_all3, y = pct, fill = consumptive_label, pattern = q_activity_all3)) +
     geom_col_pattern(
       position = "stack", show.legend = TRUE,
-      pattern_color = "transparent", pattern_fill = "#d43d51",
+      pattern_color = "transparent", pattern_fill = "#D24818",
       pattern_density = 0.4, pattern_spacing = 0.02, color = NA
     ) +
-    scale_fill_manual(values = c("Non-consumptive" = "#007EB3", "Consumptive" = "#d43d51"), name = "Activity Type") +
+    scale_fill_manual(values = c("Non-consumptive" = "#007EB3", "Consumptive" = "#D24818"), name = "Activity Type") +
     scale_pattern_manual(values = pattern_all, guide = "none") +
     guides(fill = guide_legend(override.aes = list(pattern = "none"))) +
     geom_text(
