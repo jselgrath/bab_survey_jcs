@@ -252,6 +252,17 @@ source("./bin/bab_q_mpa_nms.R")
 #              ./doc/bab_graph_mpa_science_focal_weighted.png
 
 
+source("./bin/q_management_priorities.R")#  "./bin/taylor_08.20.2025_demographic&UserData.R")
+# input:   
+#              
+# output:   
+#  
+
+
+
+
+
+
 
 
 
@@ -444,11 +455,7 @@ source("./bin/q_barrier_race_sd.R")
 source("./bin/q_barrier_race_la.R")
 # input: ./results/q13_barrier_long.csv
 
-source("./bin/q_management_priorities.R")#  "./bin/taylor_08.20.2025_demographic&UserData.R")
-# input:   
-#              
-# output:   
-#     
+   
 
 source("./bin/q_management_priorities_fg.R")# 
 
