@@ -138,6 +138,12 @@ source("./bin/bab_clean_data15_nature interaction.R")
 # input:       ./results/data_long14.csv
 # output:      ./results/data_long15.csv
 
+# adding misc variables - age brackets,
+source("./bin/bab_clean_data16_misc_variables")
+# input:       ./results/data_long15.csv
+# output:      ./results/data_long16.csv
+
+
 # -------------------------------------------------------------------------------------
 # MAKE CLEANED DATA TO FINAL DATA FOR ANALYSIS  --------
 # -------------------------------------------------------------------------------------
@@ -207,8 +213,15 @@ source("./bin/bab_q3_maps_snap_to_coast2.R")
 # output:     ./gis/q3_coordinates_4.shp 
 #             ./gis/q3_coordinates.gdb  layer = "beach_access_3"
 
-
-
+# -----------------------------------------------
+# compare race classifications --------
+# -----------------------------------------------
+# graphs to test out methods
+source("./bin/bab_graph_race_options.R")
+# input:       ./results/data_final_weighted_focal.csv
+# output:      ./doc/bab_graph_race_comparison1_focal_weighted.png  
+#              ./doc/bab_graph_race_comparison2_focal_raw.png 
+#              ./doc/bab_graph_race_indigenous_first_focal_raw.png
 
 # -------------------------------------------------------------------------------------
 # activity questions --------

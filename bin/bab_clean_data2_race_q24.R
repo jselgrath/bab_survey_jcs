@@ -36,129 +36,131 @@ writeClipboard(d1$QDemographic_Race)
 # --------------------------------------
 
 
-# -----------------------------------------------------------------------------
-# functions ------
-# -----------------------------------------------------------------------------
+library(tidyverse)
 
-# clean a single race response into standardized original tokens
-f_clean_original_race <- function(val, straightline_thresh = 6) {
-  # 1. Reclassify missing/NA values as "Choose not to answer"
-  if (is.na(val) || str_trim(val) == "" || str_trim(val) == "NA") {
-    return("Choose not to answer")
+# -----------------------------------------------------------------------------
+# Shared Race Harmonization Pipeline for Ocean Access & MPA Watch Surveys
+# -----------------------------------------------------------------------------
+clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
+  
+  # 1. Clean a single raw response into standardized original tokens
+  f_clean_original_race <- function(val) {
+    if (is.na(val) || str_trim(val) == "" || str_trim(val) == "NA") {
+      return("Choose not to answer")
+    }
+    
+    tokens <- str_trim(unlist(str_split(val, ",")))
+    tokens <- tokens[tokens != ""]
+    
+    # Harmonize wording differences across both surveys
+    tokens <- case_when(
+      tokens %in% c("Hispanic or Latino", "Hispanic or Latinx") ~ "Hispanic or Latino",
+      tokens %in% c("American Indian or Alaska Native", "Native American or Alaskan Native") ~ "American Indian or Alaskan Native",
+      tokens %in% c("Native Hawaiian or Other Pacific Islander", "Native Hawaiian or other Pacific Islander", "Native Hawaiian or Pacific Islander") ~ "Native Hawaiian or Pacific Islander",
+      tokens %in% c("Other", "Another race or ethnicity, please specify:", "Another race or ethnicity", "Another race") ~ "Another race",
+      tokens %in% c("Prefer not to say", "Choose not to answer") ~ "Choose not to answer",
+      TRUE ~ tokens
+    )
+    
+    tokens <- unique(tokens)
+    
+    # Separate specific racial/ethnic groups from non-specific options
+    non_specific <- c("Another race", "Choose not to answer")
+    specific <- setdiff(tokens, non_specific)
+    
+    # Straightliner rule: >= 5 distinct specific groups selected -> "Another race"
+    if (length(specific) >= straightline_thresh) {
+      return("Another race")
+    }
+    
+    if (length(specific) > 0) {
+      # Sort alphabetically so multi-race strings match identically across surveys
+      return(sort(specific))
+    } else if ("Another race" %in% tokens) {
+      return("Another race")
+    } else {
+      return("Choose not to answer")
+    }
   }
   
-  # Split and trim
-  tokens <- str_trim(unlist(str_split(val, ",")))
-  tokens <- tokens[tokens != ""]
-  
-  # Standardize naming variations
-  tokens <- case_when(
-    tokens %in% c("Native Hawaiian or Other Pacific Islander", "Native Hawaiian or Pacific Islander") ~ "Native Hawaiian or Pacific Islander",
-    tokens %in% c("Other", "Another race or ethnicity, please specify:", "Another race or ethnicity", "Another race") ~ "Another race",
-    TRUE ~ tokens
-  )
-  
-  # Deduplicate exact repeats
-  tokens <- unique(tokens)
-  
-  # Straightliner rule: all or almost all options selected (>= 6 out of 9)
-  if (length(tokens) >= straightline_thresh) {
-    return("Another race")
+  # 2. Collapse MENA -> White & NHPI + Asian -> Asian American/Pacific Islander
+  f_group_historical_omb <- function(tokens) {
+    grouped <- case_when(
+      tokens == "Middle Eastern or North African" ~ "White",
+      tokens %in% c("Asian", "Native Hawaiian or Pacific Islander") ~ "Asian American/Pacific Islander",
+      TRUE ~ tokens
+    )
+    sort(unique(grouped))
   }
   
-  # Drop non-specific options if specific races are also selected
-  non_specific <- c("Another race", "Choose not to answer")
-  specific <- setdiff(tokens, non_specific)
-  
-  if (length(specific) > 0) {
-    return(specific)
-  } else if ("Another race" %in% tokens) {
-    # Keeps "Another race" distinct even if paired with "Choose not to answer"
-    return("Another race")
-  } else {
-    return("Choose not to answer")
-  }
+  # 3. Apply Tasks 1, 2, and 3 uniformly
+  df %>%
+    mutate(
+      .orig_tokens = map(as.character({{ race_col }}), f_clean_original_race),
+      
+      # -----------------------------------------------------------------------
+      # TASK 2: Binary indicators (0/1) for all original race categories
+      # -----------------------------------------------------------------------
+      race_white_b      = as.integer(map_lgl(.orig_tokens, ~ "White" %in% .x)),
+      race_black_b      = as.integer(map_lgl(.orig_tokens, ~ "Black or African American" %in% .x)),
+      race_latinx_b     = as.integer(map_lgl(.orig_tokens, ~ "Hispanic or Latino" %in% .x)),
+      race_asian_b      = as.integer(map_lgl(.orig_tokens, ~ "Asian" %in% .x)),
+      race_indigenous_b = as.integer(map_lgl(.orig_tokens, ~ "American Indian or Alaskan Native" %in% .x)),
+      race_nhpi_b       = as.integer(map_lgl(.orig_tokens, ~ "Native Hawaiian or Pacific Islander" %in% .x)),
+      race_meha_b       = as.integer(map_lgl(.orig_tokens, ~ "Middle Eastern or North African" %in% .x)),
+      race_another_b    = as.integer(map_lgl(.orig_tokens, ~ "Another race" %in% .x)),
+      race_na           = as.integer(map_lgl(.orig_tokens, ~ "Choose not to answer" %in% .x)),
+      
+      # -----------------------------------------------------------------------
+      # TASK 1: Cleaned & grouped multi-select string (`q_demographic_race`)
+      # -----------------------------------------------------------------------
+      .grouped_tokens = map(.orig_tokens, f_group_historical_omb),
+      q_demographic_race = map_chr(.grouped_tokens, ~ paste(.x, collapse = ", ")),
+      
+      # -----------------------------------------------------------------------
+      # TASK 3: Four mutually exclusive classification schemes
+      # -----------------------------------------------------------------------
+      # 1) OMB Bulletin 00-02 Allocation (prioritize non-White over White)
+      q_demographic_race1_minority = map_chr(.grouped_tokens, function(t) {
+        if (length(t) == 1 && t %in% c("Another race", "Choose not to answer")) return(t)
+        non_white <- setdiff(t, "White")
+        if (length(non_white) == 0) return("White")
+        if (length(non_white) == 1) return(non_white)
+        return("Multiracial")
+      }),
+      
+      # 2) Indigenous First (AIAN) + OMB Bulletin 00-02
+      q_demographic_race2_indig = map_chr(.grouped_tokens, function(t) {
+        if (length(t) == 1 && t %in% c("Another race", "Choose not to answer")) return(t)
+        if ("American Indian or Alaskan Native" %in% t) return("American Indian or Alaskan Native")
+        non_white <- setdiff(t, "White")
+        if (length(non_white) == 0) return("White")
+        if (length(non_white) == 1) return(non_white)
+        return("Multiracial")
+      }),
+      
+      # 3) OMB 2024 Guidelines (co-equal multi-race)
+      q_demographic_race3_equal = map_chr(.grouped_tokens, function(t) {
+        if (length(t) == 1) return(t)
+        return("Multiracial")
+      }),
+      
+      # 4) Standard U.S. Census / Polling Benchmark (Hispanic prioritized)
+      q_demographic_race4_hispanic = map_chr(.grouped_tokens, function(t) {
+        if (length(t) == 1) return(t)
+        if ("Hispanic or Latino" %in% t) return("Hispanic or Latino")
+        return("Multiracial")
+      })
+    ) %>%
+    select(-.orig_tokens, -.grouped_tokens)
 }
 
-# Helper function to collapse MENA -> White and NHPI + Asian -> Asian American/Pacific Islander
-f_group_historical_omb <- function(tokens) {
-  grouped <- case_when(
-    tokens == "Middle Eastern or North African" ~ "White",
-    tokens %in% c("Asian", "Native Hawaiian or Pacific Islander") ~ "Asian American/Pacific Islander",
-    TRUE ~ tokens
-  )
-  
-  # Deduplicate after collapsing
-  unique(grouped)
-}
 
-# Execute Tasks 1, 2, and 3  ------------------
+# ------------------------------------------
+# run function
 d2 <- d1 %>%
-  mutate(
-    # Intermediate list-column of cleaned original race selections
-    .orig_tokens = map(QDemographic_Race, f_clean_original_race, straightline_thresh = 6),
-    
-    # -------------------------------------------------------------------------
-    # TASK 2: Binary indicators for all original race categories
-    # ("Another race" and "Choose not to answer" / NA kept distinct)
-    # -------------------------------------------------------------------------
-    race_white_b      = as.integer(map_lgl(.orig_tokens, ~ "White" %in% .x)),
-    race_black_b      = as.integer(map_lgl(.orig_tokens, ~ "Black or African American" %in% .x)),
-    race_latinx_b     = as.integer(map_lgl(.orig_tokens, ~ "Hispanic or Latino" %in% .x)),
-    race_asian_b      = as.integer(map_lgl(.orig_tokens, ~ "Asian" %in% .x)),
-    race_indigenous_b = as.integer(map_lgl(.orig_tokens, ~ "American Indian or Alaska Native" %in% .x)),
-    race_nhpi_b       = as.integer(map_lgl(.orig_tokens, ~ "Native Hawaiian or Pacific Islander" %in% .x)),
-    race_meha_b       = as.integer(map_lgl(.orig_tokens, ~ "Middle Eastern or North African" %in% .x)),
-    race_another_b    = as.integer(map_lgl(.orig_tokens, ~ "Another race" %in% .x)),
-    race_na           = as.integer(map_lgl(.orig_tokens, ~ "Choose not to answer" %in% .x)),
-    
-    # -------------------------------------------------------------------------
-    # TASK 1: Cleaned & grouped multi-select string column ($q_demographic_race)
-    # -------------------------------------------------------------------------
-    .grouped_tokens = map(.orig_tokens, f_group_historical_omb),
-    q_demographic_race = map_chr(.grouped_tokens, ~ paste(.x, collapse = ", ")),
-    
-    # -------------------------------------------------------------------------
-    # TASK 3: Four mutually exclusive weighting schemes
-    # ("Another race" and "Choose not to answer" remain distinct)
-    # -------------------------------------------------------------------------
-    # 1) OMB Bulletin 00-02 Allocation (prioritize non-white over white)
-    q_demographic_race1_minority = map_chr(.grouped_tokens, function(t) {
-      if (length(t) == 1 && t %in% c("Another race", "Choose not to answer")) return(t)
-      
-      non_white <- setdiff(t, "White")
-      if (length(non_white) == 0) return("White")
-      if (length(non_white) == 1) return(non_white)
-      return("Multiracial")
-    }),
-    
-    # 2) Indigenous First (AIAN) + OMB Bulletin 00-02
-    q_demographic_race2_indig = map_chr(.grouped_tokens, function(t) {
-      if (length(t) == 1 && t %in% c("Another race", "Choose not to answer")) return(t)
-      if ("American Indian or Alaska Native" %in% t) return("American Indian or Alaska Native")
-      
-      non_white <- setdiff(t, "White")
-      if (length(non_white) == 0) return("White")
-      if (length(non_white) == 1) return(non_white)
-      return("Multiracial")
-    }),
-    
-    # 3) OMB 2024 Guidelines (co-equal multi-race)
-    q_demographic_race3_equal = map_chr(.grouped_tokens, function(t) {
-      if (length(t) == 1) return(t)
-      return("Multiracial")
-    }),
-    
-    # 4) Standard U.S. Census / Polling Benchmark (Hispanic prioritized)
-    q_demographic_race4_hispanic = map_chr(.grouped_tokens, function(t) {
-      if (length(t) == 1) return(t)
-      if ("Hispanic or Latino" %in% t) return("Hispanic or Latino")
-      return("Multiracial")
-    })
-  ) %>%
-  select(-.orig_tokens, -.grouped_tokens)
-
-
+  clean_survey_race(race_col = QDemographic_Race, straightline_thresh = 5) %>%
+  glimpse()
 
 # save -------------------------------------
 write_csv(d2,"./results/data_long2.csv")
