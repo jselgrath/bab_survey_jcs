@@ -44,7 +44,7 @@ setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
 # ceusus key ------------
 # make sure census key is installed # # Run this once 
-# census_api_key("SEE EMAIL CMSF FOR CODE", install = TRUE,overwrite=TRUE)
+# census_api_key("CODE", install = TRUE,overwrite=TRUE) # SEE CMSF EMAIL FOR CODE
 # # Reload  environment without restarting R
 # readRenviron("~/.Renviron")
 
@@ -75,7 +75,7 @@ d1 <- read_csv("./results/data_final.csv")%>%
 # prompt------------------------
 # I have ocean access survey data with thousands of samples (Data = d1). We focused on coastal counties (specific countyies $county_focal_b=1), but also have respondents from other coastal counties and inland counties. In the 10 coastal counties where we focused  ($county_focal_b=1) we have a much higher sample of the population. those are: san diego, LA, Ventura, Santa Barbara, Monterey, Santa Cruz, San Francisco, Sonoma, Humboldt, and Del Norte. 
 
-#We did puprosive sampling and worked to balance samples by race so that the race of respondents roughly matched that of the county, but because of online respondents and chance its not perfectly matched - which is to be expected. I'd like to design a method for weighting samples within counties by age, race, and gender so that the sample of the counties matches is weighted to match the population. Note that the race variable people can select more than one race. relevant variables: $q_demographic_race2_indig (levels: "Choose not to answer","White","Asian American/Pacific Islander"  "Hispanic or Latino","Black or African American","Multiracial", "American Indian or Alaska Native", "Another race", NA ) (version of race variable which "AIAN / Indigenous-First" Priority Hierarchy, with minority over white rule for the remaining race classes based on OMB Bulletin 00-02 Allocation), q_demographic_gender (levels: NA, "Male", "Female","Transgender or Non-binary"), QDemographic_Birth (year of birth) and Primary_County (county is based on zip code: QDemographic_PrimaryZip).    
+#We did purposive sampling and worked to balance samples by race so that the race of respondents roughly matched that of the county, but because of online respondents and chance its not perfectly matched - which is to be expected. I'd like to design a method for weighting samples within counties by age, race, and gender so that the sample of the counties matches is weighted to match the population. Note that the race variable people can select more than one race. relevant variables: $q_demographic_race2_indig (levels: "Choose not to answer","White","Asian American/Pacific Islander"  "Hispanic or Latino","Black or African American","Multiracial", "American Indian or Alaska Native", "Another race", NA ) (version of race variable which "AIAN / Indigenous-First" Priority Hierarchy, with minority over white rule for the remaining race classes based on OMB Bulletin 00-02 Allocation), q_demographic_gender (levels: NA, "Male", "Female","Transgender or Non-binary"), QDemographic_Birth (year of birth) and Primary_County (county is based on zip code: QDemographic_PrimaryZip).    
 
 #other respondents live in areas with smaller sample sizes because we did not target them: a) the five other (non-sampled) coastal counties or b) inland counties (relvant variable $county_coastal (levels: NA,"Coastal", "Inland"). I'd like to include them but its less clear how to weight these. Because there is so much geographic and cultural variability across the state, one idea is to group them by CDFW regions (variable = $county_cdfw_region (levels="Unknown/Other","South Coast","Inland Deserts", "Central", "Bay Delta", "North Central","Northern",NA)
 
@@ -93,7 +93,6 @@ d1 <- read_csv("./results/data_final.csv")%>%
 # STEP 1: Organize & Standardize Survey Data (d1 -> d2)
 # -------------------------------------------------------------------------
 survey_year <- 2025
-
 other_coastal_central_north <- c("San Luis Obispo", "San Mateo", "Marin", "Mendocino")
 
 d2 <- d1 %>%
@@ -126,22 +125,24 @@ d2 <- d1 %>%
       TRUE ~ "Non-binary / Missing"
     ),
     
-    # Clean Race (map MENA -> White as safety net; hold Choose not to answer neutral)
+    # Clean Race: Keep "Multiracial" separate; group "Choose not to answer", NA, and "Another race" into "Choose not to answer"
     race_rake = case_when(
-      is.na(q_demographic_race2_indig) | q_demographic_race2_indig == "Choose not to answer" ~ "Missing",
       q_demographic_race2_indig == "Middle Eastern or North African" ~ "White",
-      q_demographic_race2_indig %in% c("Multiracial", "Two or more races", "Another race") ~ "Multiracial / Other",
+      q_demographic_race2_indig %in% c("Multiracial", "Two or more races") ~ "Multiracial",
+      is.na(q_demographic_race2_indig) |
+        q_demographic_race2_indig %in% c("Choose not to answer", "Another race", "") ~ "Choose not to answer",
       TRUE ~ q_demographic_race2_indig
     )
   ) %>%
   filter(weight_stratum != "Out of State / Unknown")
 
-# Quick sample size check before raking (15 total strata)
+# Quick sample size checks before raking
+d2 %>% count(race_rake)
 d2 %>% count(weight_stratum)
 
 
 # -------------------------------------------------------------------------
-# STEP 2: Download ACS PUMS & Map PUMAs to  Exact Strata (ca_pums_with_strata)
+# STEP 2: Download ACS PUMS & Map PUMAs to Exact Strata (ca_pums_with_strata)
 # -------------------------------------------------------------------------
 xwalk_url <- "https://www2.census.gov/geo/docs/reference/puma2020/2020_Census_Tract_to_2020_PUMA.txt"
 
@@ -200,6 +201,7 @@ ca_county_strata <- tibble(
   )
 )
 
+# Join PUMS records to PUMA-county crosswalk and strata lookup
 ca_pums_with_strata <- ca_pums %>%
   mutate(
     PUMA = str_pad(as.character(PUMA), width = 5, pad = "0"),
@@ -209,13 +211,15 @@ ca_pums_with_strata <- ca_pums %>%
   left_join(ca_county_strata, by = "county_clean") %>%
   mutate(
     PWGTP_adj = PWGTP * tract_share,
+    n_nonwhite_groups = (HISP != "01") + (RACBLK == "1") + (RACASN == "1" | RACNH == "1" | RACPI == "1"),
     race_target = case_when(
       RACAIAN == "1" ~ "American Indian or Alaska Native",
-      HISP != "01" & (RACBLK == "0" & RACASN == "0" & RACNH == "0" & RACPI == "0") ~ "Hispanic or Latino",
-      RACBLK == "1" & (HISP == "01" & RACASN == "0" & RACNH == "0" & RACPI == "0") ~ "Black or African American",
-      (RACASN == "1" | RACNH == "1" | RACPI == "1") & (HISP == "01" & RACBLK == "0") ~ "Asian American/Pacific Islander",
-      RACWHT == "1" & HISP == "01" & RACBLK == "0" & RACASN == "0" & RACNH == "0" & RACPI == "0" & RACSOR == "0" ~ "White",
-      TRUE ~ "Multiracial / Other"
+      n_nonwhite_groups >= 2 ~ "Multiracial",
+      HISP != "01" & n_nonwhite_groups == 1 ~ "Hispanic or Latino",
+      RACBLK == "1" & n_nonwhite_groups == 1 ~ "Black or African American",
+      (RACASN == "1" | RACNH == "1" | RACPI == "1") & n_nonwhite_groups == 1 ~ "Asian American/Pacific Islander",
+      RACWHT == "1" & n_nonwhite_groups == 0 & RACSOR == "0" ~ "White",
+      TRUE ~ "Multiracial"
     ),
     age_target = case_when(
       AGEP <= 29 ~ "18-29",
@@ -224,7 +228,8 @@ ca_pums_with_strata <- ca_pums %>%
       TRUE       ~ "65+"
     ),
     gender_target = if_else(SEX == "1", "Male", "Female")
-  )
+  ) %>%
+  select(-n_nonwhite_groups)
 
 # DIAGNOSTIC CHECK: Verify 100% of strata in d2 exist in ca_pums_with_strata
 missing_strata <- setdiff(unique(d2$weight_stratum), unique(ca_pums_with_strata$weight_stratum))
@@ -248,7 +253,7 @@ f_rake_by_stratum <- function(sample_df, target_pums_df, max_weight = 5.0) {
     sub_pop  <- target_pums_df %>% filter(weight_stratum == st)
     n_samp   <- nrow(sub_samp)
     
-    # Tighter weight cap (3.5) for small strata (e.g., Del Norte n = 37)
+    # Tighter weight cap (3.5) for small strata (e.g., Del Norte n = 36)
     cap <- if (n_samp < 50) 3.5 else max_weight
     
     # --- Safety Collapse 1: Zero-count age brackets in small strata ---
@@ -276,22 +281,40 @@ f_rake_by_stratum <- function(sample_df, target_pums_df, max_weight = 5.0) {
     }
     
     # --- Safety Collapse 2: Race categories with < 3 sample respondents ---
-    small_races <- sub_samp %>%
-      filter(race_rake != "Missing") %>%
+    # Collapse rare non-Multiracial cells into "Multiracial"; if "Multiracial" itself has < 3 respondents,
+    # collapse it into the largest race category in that stratum ("White") so small strata converge cleanly.
+    race_counts <- sub_samp %>%
+      filter(race_rake != "Choose not to answer") %>%
       count(race_rake) %>%
       right_join(tibble(race_rake = unique(sub_pop$race_target)), by = "race_rake") %>%
-      mutate(n = replace_na(n, 0)) %>%
-      filter(n < 3, race_rake != "Multiracial / Other") %>%
+      mutate(n = replace_na(n, 0))
+    
+    small_non_multi <- race_counts %>%
+      filter(n < 3, race_rake != "Multiracial") %>%
       pull(race_rake)
     
     sub_samp <- sub_samp %>%
-      mutate(race_rake_adj = if_else(race_rake %in% small_races, "Multiracial / Other", race_rake))
+      mutate(race_rake_adj = if_else(race_rake %in% small_non_multi, "Multiracial", race_rake))
     
     sub_pop <- sub_pop %>%
-      mutate(race_target_adj = if_else(race_target %in% small_races, "Multiracial / Other", race_target))
+      mutate(race_target_adj = if_else(race_target %in% small_non_multi, "Multiracial", race_target))
     
-# --- 1. Build Marginal Target Tables (using PWGTP_adj across all 3 margins) ---
-    # Age (hold "Missing" at exact sample count so weight = 1.0)
+    # Check if "Multiracial" (even after absorbing small cells) still has < 3 respondents
+    n_multi_post <- sum(sub_samp$race_rake_adj == "Multiracial")
+    if (n_multi_post < 3 && "Multiracial" %in% unique(sub_pop$race_target_adj)) {
+      largest_cat <- sub_samp %>%
+        filter(!race_rake_adj %in% c("Choose not to answer", "Multiracial")) %>%
+        count(race_rake_adj, sort = TRUE) %>%
+        slice(1) %>%
+        pull(race_rake_adj)
+      
+      sub_samp <- sub_samp %>%
+        mutate(race_rake_adj = if_else(race_rake_adj == "Multiracial", largest_cat, race_rake_adj))
+      sub_pop <- sub_pop %>%
+        mutate(race_target_adj = if_else(race_target_adj == "Multiracial", largest_cat, race_target_adj))
+    }
+    
+    # --- 1. Build Marginal Target Tables ---
     n_age_miss  <- sum(sub_samp$age_cat_adj == "Missing")
     n_age_valid <- n_samp - n_age_miss
     
@@ -304,7 +327,6 @@ f_rake_by_stratum <- function(sample_df, target_pums_df, max_weight = 5.0) {
       pop_age <- bind_rows(pop_age, tibble(age_cat_adj = "Missing", Freq = n_age_miss))
     }
     
-    # Gender (hold "Non-binary / Missing" at exact sample count so weight = 1.0)
     n_nonbinary <- sum(sub_samp$gender_rake == "Non-binary / Missing")
     n_binary    <- n_samp - n_nonbinary
     
@@ -317,17 +339,17 @@ f_rake_by_stratum <- function(sample_df, target_pums_df, max_weight = 5.0) {
       pop_gender <- bind_rows(pop_gender, tibble(gender_rake = "Non-binary / Missing", Freq = n_nonbinary))
     }
     
-    # Race (hold "Missing" at exact sample count so weight = 1.0)
-    n_race_miss  <- sum(sub_samp$race_rake_adj == "Missing")
-    n_race_valid <- n_samp - n_race_miss
+    # Race (hold "Choose not to answer" at exact sample count so weight = 1.0)
+    n_race_cna   <- sum(sub_samp$race_rake_adj == "Choose not to answer")
+    n_race_valid <- n_samp - n_race_cna
     
     pop_race <- sub_pop %>%
       count(race_rake_adj = race_target_adj, wt = PWGTP_adj) %>%
       mutate(Freq = n / sum(n) * n_race_valid) %>%
       select(race_rake_adj, Freq)
     
-    if (n_race_miss > 0) {
-      pop_race <- bind_rows(pop_race, tibble(race_rake_adj = "Missing", Freq = n_race_miss))
+    if (n_race_cna > 0) {
+      pop_race <- bind_rows(pop_race, tibble(race_rake_adj = "Choose not to answer", Freq = n_race_cna))
     }
     
     # --- 2. Initialize Design & Rake ---
@@ -386,7 +408,7 @@ d3_weighted %>%
 
 # 3. Spot-check weighted sample vs. Census PUMS target in Los Angeles
 d3_weighted %>%
-  filter(weight_stratum == "Los Angeles", race_rake != "Missing") %>%
+  filter(weight_stratum == "Los Angeles", race_rake != "Choose not to answer") %>%
   count(race_rake, wt = weight_within_stratum) %>%
   mutate(sample_weighted_pct = round(n / sum(n) * 100, 1)) %>%
   left_join(
@@ -402,15 +424,11 @@ d3_weighted %>%
 d3_weighted %>%
   filter(weight_stratum %in% c("Los Angeles", "Ventura"), weight_within_stratum >= 4.9) %>%
   count(weight_stratum, age_cat, gender_rake, race_rake)
-# -------------------------------------------------------------------------
 
-# check
-glimpse(d3_weighted)
 
 # ---------------------------------------------------------------------------
 # STEP 5: Create Dedicated Coastal & Focal County Datasets
 # ---------------------------------------------------------------------------
-# Define the exact strata belonging to each analytical scope
 focal_strata <- c(
   "San Diego", "Los Angeles", "Ventura", "Santa Barbara", "Monterey",
   "Santa Cruz", "San Francisco", "Sonoma", "Humboldt", "Del Norte"
@@ -438,7 +456,6 @@ message(sprintf(
   nrow(d3_weighted), nrow(d3_coastal), nrow(d3_focal)
 ))
 
-# Confirm each subset's population weight sums to its exact Census adult population
 tibble(
   dataset = c("Statewide (All CA)", "Coastal Counties (15)", "Focal Counties (10)"),
   n_respondents = c(nrow(d3_weighted), nrow(d3_coastal), nrow(d3_focal)),
@@ -456,6 +473,6 @@ tibble(
 
 # -------------------------------------------------------------------------
 # save
-write_csv(d3_weighted,"./results/data_final_weighted.csv")
-write_csv(d3_coastal,"./results/data_final_weighted_coastal.csv")
-write_csv(d3_focal,"./results/data_final_weighted_focal.csv")
+write_csv(d3_weighted, "./results/data_final_weighted.csv")
+write_csv(d3_coastal,  "./results/data_final_weighted_coastal.csv")
+write_csv(d3_focal,    "./results/data_final_weighted_focal.csv")

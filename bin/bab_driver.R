@@ -42,10 +42,41 @@ setwd("C:/Users/jennifer.selgrath/Documents/r_projects/bab_survey_jcs")
 # output:       ./results/q_comments_cleaned.csv"
 
 
+# ------------------------------
+# general gis processing ----
+# ------------------------------
+# create ca outline, high res ca coastline (line only), and process cdfw regions to have less data and remove marine region (only places where people live)
+source("./bin/gis_update_ca_files.R")
+# input:        ./gis_data/coastline_west_cusp_20260518/coastline_west_cusp.shp
+#               ./gis_data/zip_codes_ca/california_zip_codes4.shp
+#               ./gis_data/cdfw_regions/cdfw_regions.shp
+#               ./gis_data/ca_counties/ca_counties.shp
+# output:       ./gis_results/california.gpkg",  layer = "cdfw_regions2 and .shp
+#               ./gis_results/california.gpkg",  layer = "ca_outline and .shp
+#               ./gis_results/california.gpkg",  layer = "ca_coast_line  and .shp
+#               ./gis_results/california.gpkg",  layer = "ca_counties2 and .shp
+
+# maps of california - outline, fill
+source("./bin/bab_map_ca_outline.R")
+# input:       ./gis_results/ca_outline.gpkg
+# output:      ./doc/ca_filled_white.png #grey, etc
+#              ./doc/ca_outline_white.png
+
+# create weighting variable
+source("./bin/gis_update_weighting.R")
+# input:        ./gis_results/california.gpkg",  layer = "cdfw_regions2 and .shp
+#               ./gis_results/california.gpkg",  layer = "ca_outline and .shp
+#               ./gis_results/california.gpkg",  layer = "ca_counties2 and .shp
+# output:       ./gis_results/california.gpkg",  layer = "weighting" 
+
+# create weighting map
+source("./bin/bab_map_weighting.R")
+# input:       ./gis_results/california.gpkg",  layer = "weighting" 
+# output:       ./doc/bab_map_weighting.png
 
 
 # ------------------------------
-# -- data cleaning --
+# data cleaning ----
 # ------------------------------
 # import joined and cleaned data from qualitrics (california respondents only)
 # remove people who took survey 2x using email and 3 duplicate entry paper surveys
@@ -139,7 +170,7 @@ source("./bin/bab_clean_data15_nature interaction.R")
 # output:      ./results/data_long15.csv
 
 # adding misc variables - age brackets,
-source("./bin/bab_clean_data16_misc_variables")
+source("./bin/bab_clean_data16_misc_variables.R")
 # input:       ./results/data_long15.csv
 # output:      ./results/data_long16.csv
 
@@ -183,15 +214,11 @@ source("./bin/bab_map_zip_ca.R")
 #              ./gis_data/zip_codes_ca/california_zip_codes4.shp
 #              ./gis_data/mpa_ca_state_124/ca_state_mpas_124.shp
 #              ./gis_data/national_marine_sanctuaries_2025/national_marine_sanctuaries.shp
-#              ./gis_data/ca_counties/ca_counties.shp
+#              "./gis_results/california.gpkg",  layer = "ca_counties2"
 # output:      ./doc/bab_map_zip_codes_ca.png
-#              ./gis_data/ca_counties/ca_counties2.shp 
+         
 
-# maps of california - white outline, white fill
-source("./bin/bab_map_ca_outline.R")
-# input:       ./gis_data/ca_counties/ca_counties.shp
-# output:      ./doc/ca_filled_white.png
-#              ./doc/ca_outline_white.png
+
 
 
 # -------------------------------------------------------------------------------------

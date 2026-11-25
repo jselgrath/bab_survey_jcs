@@ -3,11 +3,11 @@
 # California Marine Sanctuary Foundation/ CINMS
 
 # goal: clean race data q_demographic_race for long data
+# combining Choose not to answer + Another race
 
 # ----------------------------------------------------------
 # load libraries ----------
 library(tidyverse)
-library(dplyr)
 library(stringr)
 library(purrr)
 
@@ -20,6 +20,7 @@ d1<-read_csv("./results/data_long1.csv")%>%
   mutate(q_demographic_race = as.character(QDemographic_Race))%>%
   glimpse()
 
+problems(d1) %>% print(n = 50)
 writeClipboard(d1$QDemographic_Race)
 
 # I want to organize the race data from my survey (data = d1) column = $QDemographic_Race
@@ -36,10 +37,15 @@ writeClipboard(d1$QDemographic_Race)
 # --------------------------------------
 
 
-library(tidyverse)
+
 
 # -----------------------------------------------------------------------------
-# Shared Race Harmonization Pipeline for Ocean Access & MPA Watch Surveys
+# Clean & Categorize Race Data for Ocean Access & MPA Watch Surveys
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# ("Choose not to answer", NA, and "Another race" -> "Choose not to answer";
+#  "Multiracial" remains separate)
+# North African > White; Hawaiian and Pacific Islander > API
 # -----------------------------------------------------------------------------
 clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
   
@@ -55,7 +61,7 @@ clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
     # Harmonize wording differences across both surveys
     tokens <- case_when(
       tokens %in% c("Hispanic or Latino", "Hispanic or Latinx") ~ "Hispanic or Latino",
-      tokens %in% c("American Indian or Alaska Native", "Native American or Alaskan Native") ~ "American Indian or Alaskan Native",
+      tokens %in% c("American Indian or Alaska Native", "Native American or Alaskan Native") ~ "American Indian or Alaska Native",
       tokens %in% c("Native Hawaiian or Other Pacific Islander", "Native Hawaiian or other Pacific Islander", "Native Hawaiian or Pacific Islander") ~ "Native Hawaiian or Pacific Islander",
       tokens %in% c("Other", "Another race or ethnicity, please specify:", "Another race or ethnicity", "Another race") ~ "Another race",
       tokens %in% c("Prefer not to say", "Choose not to answer") ~ "Choose not to answer",
@@ -74,7 +80,6 @@ clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
     }
     
     if (length(specific) > 0) {
-      # Sort alphabetically so multi-race strings match identically across surveys
       return(sort(specific))
     } else if ("Another race" %in% tokens) {
       return("Another race")
@@ -83,11 +88,13 @@ clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
     }
   }
   
-  # 2. Collapse MENA -> White & NHPI + Asian -> Asian American/Pacific Islander
+  # 2. Collapse MENA -> White, NHPI + Asian -> Asian American/Pacific Islander,
+  #    and Another race -> Choose not to answer (keeping multi-race vectors intact)
   f_group_historical_omb <- function(tokens) {
     grouped <- case_when(
       tokens == "Middle Eastern or North African" ~ "White",
       tokens %in% c("Asian", "Native Hawaiian or Pacific Islander") ~ "Asian American/Pacific Islander",
+      tokens == "Another race" ~ "Choose not to answer",
       TRUE ~ tokens
     )
     sort(unique(grouped))
@@ -98,31 +105,25 @@ clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
     mutate(
       .orig_tokens = map(as.character({{ race_col }}), f_clean_original_race),
       
-      # -----------------------------------------------------------------------
-      # TASK 2: Binary indicators (0/1) for all original race categories
-      # -----------------------------------------------------------------------
+      # TASK 2: Binary indicators (0/1) for original race categories
       race_white_b      = as.integer(map_lgl(.orig_tokens, ~ "White" %in% .x)),
       race_black_b      = as.integer(map_lgl(.orig_tokens, ~ "Black or African American" %in% .x)),
       race_latinx_b     = as.integer(map_lgl(.orig_tokens, ~ "Hispanic or Latino" %in% .x)),
       race_asian_b      = as.integer(map_lgl(.orig_tokens, ~ "Asian" %in% .x)),
-      race_indigenous_b = as.integer(map_lgl(.orig_tokens, ~ "American Indian or Alaskan Native" %in% .x)),
+      race_indigenous_b = as.integer(map_lgl(.orig_tokens, ~ "American Indian or Alaska Native" %in% .x)),
       race_nhpi_b       = as.integer(map_lgl(.orig_tokens, ~ "Native Hawaiian or Pacific Islander" %in% .x)),
       race_meha_b       = as.integer(map_lgl(.orig_tokens, ~ "Middle Eastern or North African" %in% .x)),
       race_another_b    = as.integer(map_lgl(.orig_tokens, ~ "Another race" %in% .x)),
       race_na           = as.integer(map_lgl(.orig_tokens, ~ "Choose not to answer" %in% .x)),
       
-      # -----------------------------------------------------------------------
       # TASK 1: Cleaned & grouped multi-select string (`q_demographic_race`)
-      # -----------------------------------------------------------------------
       .grouped_tokens = map(.orig_tokens, f_group_historical_omb),
       q_demographic_race = map_chr(.grouped_tokens, ~ paste(.x, collapse = ", ")),
       
-      # -----------------------------------------------------------------------
       # TASK 3: Four mutually exclusive classification schemes
-      # -----------------------------------------------------------------------
       # 1) OMB Bulletin 00-02 Allocation (prioritize non-White over White)
       q_demographic_race1_minority = map_chr(.grouped_tokens, function(t) {
-        if (length(t) == 1 && t %in% c("Another race", "Choose not to answer")) return(t)
+        if (length(t) == 1 && t == "Choose not to answer") return("Choose not to answer")
         non_white <- setdiff(t, "White")
         if (length(non_white) == 0) return("White")
         if (length(non_white) == 1) return(non_white)
@@ -131,8 +132,8 @@ clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
       
       # 2) Indigenous First (AIAN) + OMB Bulletin 00-02
       q_demographic_race2_indig = map_chr(.grouped_tokens, function(t) {
-        if (length(t) == 1 && t %in% c("Another race", "Choose not to answer")) return(t)
-        if ("American Indian or Alaskan Native" %in% t) return("American Indian or Alaskan Native")
+        if (length(t) == 1 && t == "Choose not to answer") return("Choose not to answer")
+        if ("American Indian or Alaska Native" %in% t) return("American Indian or Alaska Native")
         non_white <- setdiff(t, "White")
         if (length(non_white) == 0) return("White")
         if (length(non_white) == 1) return(non_white)
@@ -155,12 +156,16 @@ clean_survey_race <- function(df, race_col, straightline_thresh = 5) {
     select(-.orig_tokens, -.grouped_tokens)
 }
 
-
 # ------------------------------------------
 # run function
 d2 <- d1 %>%
   clean_survey_race(race_col = QDemographic_Race, straightline_thresh = 5) %>%
   glimpse()
 
+# Quick check to confirm "Choose not to answer" is merged into "Another race"
+d2 %>%
+  count(q_demographic_race2_indig, race_another_b, race_na) %>%
+  print()
+
 # save -------------------------------------
-write_csv(d2,"./results/data_long2.csv")
+write_csv(d2, "./results/data_long2.csv")

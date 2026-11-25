@@ -17,7 +17,6 @@ library(stringr)
 # Load data ----------------------------------------------------------------
 rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
-source("./bin/deets.R")
 
 d1 <- read_csv("./results/data_final_weighted_focal.csv", guess_max = Inf) %>%
   glimpse()

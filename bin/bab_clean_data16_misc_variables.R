@@ -13,6 +13,7 @@ library(tidyverse)
 rm(list = ls(all = TRUE))
 setwd("C:/Users/Jennifer.Selgrath/Documents/r_projects/bab_survey_jcs")
 
+year<-2025
 
 # read file
 d1 <- read_csv("./results/data_long15.csv") %>%
@@ -21,6 +22,7 @@ d1 <- read_csv("./results/data_long15.csv") %>%
 
 d2 <- d1 %>%
   mutate(
+    age = year-as.numeric(QDemographic_Birth, na.rm=T),
     age_group = case_when(
       age >= 18 & age <= 24 ~ "18-24",
       age >= 25 & age <= 34 ~ "25-34",

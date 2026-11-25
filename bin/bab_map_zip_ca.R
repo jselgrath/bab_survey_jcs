@@ -24,7 +24,7 @@ d0<-st_read("./gis_data/zip_codes_ca/california_zip_codes4.shp")%>%
   mutate(zip_code=as.numeric(zip_code))%>%
   glimpse()
 
-plot(d0[1])
+# plot(d0[1])
 
 # mpas -----------
 d00<-st_read("./gis_data/mpa_ca_state_124/ca_state_mpas_124.shp")%>%
@@ -45,21 +45,11 @@ d000<-st_read("./gis_data/national_marine_sanctuaries_2025/national_marine_sanct
 unique(d000$name)
 
 # counties ----------
-d0000 <- st_read("./gis_data/ca_counties/ca_counties.shp") %>%
-  st_transform(crs = st_crs(d0)) %>%
-  mutate(
-    county = NAME, 
-    co_long = NAMELSAD,
-    co_survey = if_else(county %in% c("San Diego", "Los Angeles", "Ventura", 
-                                      "Santa Barbara", "Monterey", "Santa Cruz", 
-                                      "San Francisco", "Sonoma", "Humboldt", "Del Norte"), 1, 0),
-    co_phase = if_else(county %in% c("San Diego", "Los Angeles", "Sonoma", "Humboldt", "Del Norte"), "Phase II", "Phase I"),
-    co_phase = if_else(co_survey == 1, co_phase, NA_character_)
-  ) %>%
-  select(county, co_long, co_survey, co_phase) %>%
+d0000 <- st_read("./gis_results/california.gpkg",  layer = "ca_counties2") %>%
   glimpse()
 # st_crs(d000)
 plot(d0000[4])
+plot(d0000)
 
 # surveyed counties only ------
 d_survey_counties <- d0000 %>% 
@@ -74,7 +64,7 @@ d1<-read_csv("./results/data_long11.csv")%>%
 zip_counts <- d1 %>% 
   filter(!is.na(QDemographic_PrimaryZip)) %>% 
   mutate(zip_clean = as.numeric(str_pad(as.character(QDemographic_PrimaryZip), width = 5, side = "left", pad = "0"))) %>% 
-  count(zip_clean, name = "count") %>%
+  dplyr::count(zip_clean, name = "count") %>%
   glimpse()
 
 # Join spatial data with counts & bin
@@ -145,42 +135,45 @@ ggplot() +
     )
   ) +
   
-  # 3. Marine Protected Areas (MPAs)
-  new_scale_fill() +
-  geom_sf(
-    data = d00, 
-    aes(fill = "State MPAs"), 
-    color = alpha("#00588B", 0.6),
-    linewidth = 0.2,
-    alpha = 0.5
-  ) +
-  scale_fill_manual(
-    values = c("State MPAs" = alpha("#009B95", 0.5)),
-    name = NULL,
-    guide = guide_legend(order = 3) # <-- Fixed: added 'guide ='
-  ) +
+ 
   
-  # 4. National Marine Sanctuaries (NMS)
+  # 3. National Marine Sanctuaries (NMS)
   new_scale_fill() +
   new_scale_color() +
   geom_sf(
     data = d000,
     aes(fill = "National Marine Sanctuaries", color = "National Marine Sanctuaries"),
     linewidth = 0.35,
-    alpha = 0.25
+    alpha = 0.6
   ) +
   scale_fill_manual(
-    values = c("National Marine Sanctuaries" = "#57addfff"),
+    values = c("National Marine Sanctuaries" = "#5C8AB4"), #57addfff
     name = NULL,
     guide = guide_legend(           # <-- Fixed: removed duplicate nested guide_legend()
       order = 2,
-      override.aes = list(color = "#084594", alpha = 0.4, linewidth = 0.5)
+      override.aes = list(color = "#5C8AB4", alpha = 0.6, linewidth = 0.5) #084594
     )
   ) +
   scale_color_manual(
-    values = c("National Marine Sanctuaries" = "#084594"),
+    values = c("National Marine Sanctuaries" = "#5C8AB4"), #084594
     guide = "none"
   ) +
+  
+   # 4. Marine Protected Areas (MPAs)
+  new_scale_fill() +
+  geom_sf(
+    data = d00, 
+    aes(fill = "State MPAs"), 
+    color = alpha("#073763", 0.6), # #00588B
+    linewidth = 0.2,
+    # alpha = 0.6
+  ) +
+  scale_fill_manual(
+    values = c("State MPAs" = alpha("#073763", 0.6)), #009B95
+    name = NULL,
+    guide = guide_legend(order = 3) # <-- Fixed: added 'guide ='
+  ) +
+  
   
   # 5. Scale Bar
   annotation_scale(
@@ -200,7 +193,7 @@ ggplot() +
     pad_x = unit(2.9, "in"),   # Offset to the right of the scale bar
     pad_y = unit(0.4, "in"),   # y location
     height = unit(0.5, "in"), 
-    width = unit(0.33, "in"),
+    width = unit(0.3, "in"),
     style = north_arrow_orienteering(text_size = 9)
   ) +
   
@@ -229,10 +222,7 @@ ggplot() +
     plot.margin = margin(10, 10, 10, 10)
   )
 
-ggsave("./doc/bab_map_zip_codes_ca.png", width = 9, height = 9, dpi = 300)
+ggsave("./doc/bab_map_zip_codes_ca2.png", width = 9, height = 9, dpi = 300)
 
 
-# save county shapefile
-st_write(d0000,"./gis_results/ca_counties2.shp",delete_layer = TRUE)
 
-st_write(  d0000, dsn = "./gis_results/counties.gdb",  layer = "ca_counties2",   driver = "OpenFileGDB",   delete_layer = TRUE)
